@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS 
 import mysql.connector
-from werkzeug.security import generate_password_hash, check_password_hash
+import bcrypt
 
 app = Flask(__name__)
 cors = CORS(app, origins='*')
@@ -13,18 +13,6 @@ def get_connection():
         password='',
         database='prototype'
     )
-
-@app.route('/api/debug/tables', methods=['GET'])
-
-def getTables_debug():
-    con = get_connection()
-    cursor=con.cursor()
-    cursor.execute("SHOW TABLES;")
-    tables = cursor.fetchall()
-    cursor.close()
-    con.close()
-    table_names=[table[0] for table in tables]
-    return jsonify({"Tables: ", table_names}), 200
 
 def query_db(query, args=(), one=False):
     con = get_connection()
@@ -40,18 +28,37 @@ def query_db(query, args=(), one=False):
 def login():
     data = request.get_json()
     user = data.get('user')
-    senha = data.get('senha')
+    inputSenha = data.get('senha')
+    permissao = data.get('permissao')
 
-    verify = query_db('SELECT nome, senha FROM pesquisador WHERE nome = %s', (user,))
+    if permissao == 1:
 
-    if not verify:
-        return jsonify({
-            "message" : f"Usuário não registrado no banco de dados"
-        })
-    else:
-        return jsonify({
-            "message" : f"Usuário registrado no banco de dados, com Nome = {user} e SENHA = {senha}"
-        })
+        verify = query_db('SELECT nome, senha, permissao FROM usuario WHERE nome = %s', (user))
+
+        if not verify:
+            return jsonify({
+                "message" : f"Falha no Login, tente novamente"
+            })
+    
+        else:
+            return jsonify({
+                "message" : f"Usuário registrado no banco de dados!"
+            })
+        
+    if permissao == 0:
+
+        verify = query_db('SELECT nome, senha, permissao FROM usuario WHERE nome = %s', (user))
+
+        if not verify:
+            return jsonify({
+                "message" : f"Falha no Login, tente novamente"
+            })
+        
+        else:
+            return jsonify({
+                "message" : f"Usuário registrado no banco de dados!"
+            })
+
 
 if __name__ == "__main__":
     app.run(debug=True)
