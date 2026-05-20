@@ -3,7 +3,7 @@ import './App.css'
 
 function App() {  
   const [message, setMessage] = useState(null)
-  const [id, setId] = useState('')
+  const [user, setUser] = useState('')
   const [senha, setSenha] = useState('')
 
   const preventReload = async(e: React.FormEvent) => {
@@ -12,12 +12,10 @@ function App() {
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({id, senha})
+      body: JSON.stringify({user, senha})
     })
-
     const data = await res.json()
     setMessage(data.message)
-
   }
 
   return (
@@ -35,9 +33,9 @@ function App() {
 
           <input 
           type="text" 
-          placeholder="ID Registrado"
-          value={id}
-          onChange = {(e) => setId(e.target.value)}
+          placeholder="Nome de Usuário"
+          value={user}
+          onChange = {(e) => setUser(e.target.value)}
           />
 
           <input 
