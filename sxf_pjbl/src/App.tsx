@@ -1,18 +1,20 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import './App.css'
 
 function App() {  
   const [message, setMessage] = useState(null)
   const [user, setUser] = useState('')
   const [senha, setSenha] = useState('')
+  const [permissao, setPermissao] = useState(0)
 
   const preventReload = async(e: React.FormEvent) => {
+
     e.preventDefault();
 
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({user, senha})
+      body: JSON.stringify({user, senha, permissao})
     })
     const data = await res.json()
     setMessage(data.message)
@@ -31,6 +33,9 @@ function App() {
 
         <form className="formLogin" onSubmit={preventReload}>
 
+          <h2>Login</h2>
+          <p>Bem vindo</p>
+
           <input 
           type="text" 
           placeholder="Nome de Usuário"
@@ -45,13 +50,20 @@ function App() {
           onChange = {(e) => setSenha(e.target.value)}
           />
 
+          <p>Sou admin</p>
+          <input
+          type="checkbox"
+          checked={permissao === 1}
+          onChange = {(e) => setPermissao(e.target.checked ? 1 : 0)}
+          />
+
           <button type="submit">Logar</button>
 
         </form> 
 
       </div>
 
-    </div>
+      </div>
     </>
   )
 }

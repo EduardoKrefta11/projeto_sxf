@@ -3,8 +3,9 @@
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS 
+import html
 import mysql.connector
-from werkzeug.security import generate_password_hash, check_password_hash
+import bcrypt
 
 app = Flask(__name__)
 cors = CORS(app, origins='*')
@@ -16,18 +17,6 @@ def get_connection():
         password='',
         database='prototype'
     )
-
-@app.route('/api/debug/tables', methods=['GET'])
-
-def getTables_debug():
-    con = get_connection()
-    cursor=con.cursor()
-    cursor.execute("SHOW TABLES;")
-    tables = cursor.fetchall()
-    cursor.close()
-    con.close()
-    table_names=[table[0] for table in tables]
-    return jsonify({"Tables: ", table_names}), 200
 
 def query_db(query, args=(), one=False):
     con = get_connection()
@@ -42,18 +31,32 @@ def query_db(query, args=(), one=False):
 
 def login():
     data = request.get_json()
-    user = data.get('user')
-    senha = data.get('senha')
-    verify = query_db('SELECT nome, senha FROM user WHERE nome = %s', (user,))
+    user = html.escape(data.get('user'))
+    inputSenha = html.escape(data.get('senha'))
+    permissao = data.get('permissao')
+    permissao_mapa = {'ADM': 1, 'COM': 0}
 
+    verify = query_db("SELECT nome, senha, permissao FROM usuario WHERE nome = %s", (user,))
+    
     if not verify:
-        return jsonify({
-            "message" : f"Usuário não registrado no banco de dados"
+      return jsonify({
+            "message" : f"Falha no Login, tente novamente"
         })
-    else:
+
+    if not bcrypt.checkpw(inputSenha.encode('utf-8'), 
+                          verify['senha'].encode('utf-8')):
         return jsonify({
-            "message" : f"Usuário registrado no banco de dados, com Nome = {user} e SENHA = {senha}"
+            "message" : f"Falha no Login, tente novamente"
         })
+
+    if permissao_mapa.get(verify['permissao']) != permissao:
+        return jsonify({
+            "message" : f"Acesso negado, permissão insuficiente"
+        })
+
+    return jsonify({
+        "message" : f"Login efetuado com sucesso. Bem-vindo, {verify['nome']}"
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)
