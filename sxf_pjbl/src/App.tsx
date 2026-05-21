@@ -1,4 +1,8 @@
 import { useState } from 'react'
+<<<<<<< HEAD
+=======
+import './App.css'
+>>>>>>> d870c92c05f6a10b9a72d2cb4f92f8c090c41d00
 
 function App() {  
   const [message, setMessage] = useState(null)
@@ -24,7 +28,11 @@ function App() {
 
     <div className="containerMain">
       
+<<<<<<< HEAD
 
+=======
+      <h1>SXF</h1>
+>>>>>>> d870c92c05f6a10b9a72d2cb4f92f8c090c41d00
 
       <p>{message}</p>
 
