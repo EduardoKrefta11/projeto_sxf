@@ -1,26 +1,31 @@
+// cd 'PASTA DO app.tsx'
+// npm run dev
+
 import { useState } from 'react'
-<<<<<<< HEAD
-=======
 import './App.css'
->>>>>>> d870c92c05f6a10b9a72d2cb4f92f8c090c41d00
 
 function App() {  
-  const [message, setMessage] = useState(null)
+  const [message, setMessage] = useState('')
   const [user, setUser] = useState('')
   const [senha, setSenha] = useState('')
-  const [permissao, setPermissao] = useState(0)
+  const [permissao, setPermissao] = useState(false)
 
   const preventReload = async(e: React.FormEvent) => {
 
     e.preventDefault();
 
+    try {
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({user, senha, permissao})
     })
-    const data = await res.json()
-    setMessage(data.message)
+      const data = await res.json()
+      setMessage(data.message)
+
+    } catch (error) {
+      setMessage('Erro ao conectar com o servidor.')
+    }
   }
 
   return (
@@ -28,11 +33,7 @@ function App() {
 
     <div className="containerMain">
       
-<<<<<<< HEAD
-
-=======
       <h1>SXF</h1>
->>>>>>> d870c92c05f6a10b9a72d2cb4f92f8c090c41d00
 
       <p>{message}</p>
 
@@ -60,8 +61,7 @@ function App() {
           <p>Sou admin</p>
           <input
           type="checkbox"
-          checked={permissao === 1}
-          onChange = {(e) => setPermissao(e.target.checked ? 1 : 0)}
+          onChange = {(e) => setPermissao(e.target.checked)}
           />
 
           <button type="submit">Logar</button>

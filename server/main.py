@@ -1,5 +1,10 @@
+## cd 'PASTA DO main.py'
+## python -m venv .venv
+## .venv\Scripts\activate
+## pip install Flask
 ## pip install mysql_connector
 ## pip install flask_cors
+## pip install bcrypt
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS 
@@ -22,7 +27,7 @@ def query_db(query, args=(), one=False):
     con = get_connection()
     cursor = con.cursor(dictionary=True)
     cursor.execute(query, args)
-    result = cursor.fetchone() if one else cursor.fetchall()
+    result = cursor.fetchone()
     cursor.close()
     con.close()
     return result
@@ -31,12 +36,12 @@ def query_db(query, args=(), one=False):
 
 def login():
     data = request.get_json()
-    user = html.escape(data.get('user'))
-    inputSenha = html.escape(data.get('senha'))
+    user = data.get('user')
+    inputSenha = data.get('senha')
     permissao = data.get('permissao')
-    permissao_mapa = {'ADM': 1, 'COM': 0}
+    permissao_mapa = {'ADM': True, 'COM': False}
 
-    verify = query_db("SELECT nome, senha, permissao FROM usuario WHERE nome = %s", (user,))
+    verify = query_db("SELECT user, senha, permissao FROM usuario WHERE user = %s", (user, ), one=True)
     
     if not verify:
       return jsonify({
@@ -55,7 +60,14 @@ def login():
         })
 
     return jsonify({
-        "message" : f"Login efetuado com sucesso. Bem-vindo, {verify['nome']}"
+        "message" : f"Login efetuado com sucesso. Bem-vindo, {verify['user']}"
+    })
+
+@app.route('/', methods=['GET'])
+
+def test():
+    return jsonify({
+      "message" : "Teste realizado com sucesso."
     })
 
 if __name__ == "__main__":
