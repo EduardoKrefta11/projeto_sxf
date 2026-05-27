@@ -2,7 +2,7 @@
 ## python -m venv .venv
 ## .venv\Scripts\activate
 ## pip install Flask
-## pip install mysql_connector
+## pip install mysql-connector-python
 ## pip install flask_cors
 ## pip install bcrypt
 
@@ -16,21 +16,32 @@ app = Flask(__name__)
 cors = CORS(app, origins='*')
 
 def get_connection():
-    return mysql.connector.connect(
-        host='localhost',
-        user='root',
-        password='',
-        database='prototype'
-    )
+
+    try:
+        return mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='j1h43i1y08dsaAKÇ9-009u',
+            database='db_sxf'
+        )
+    except mysql.connector.Error as err:
+        print(f"Erro MySQL: {err}")
+        return None
 
 def query_db(query, args=(), one=False):
-    con = get_connection()
-    cursor = con.cursor(dictionary=True)
-    cursor.execute(query, args)
-    result = cursor.fetchone()
-    cursor.close()
-    con.close()
-    return result
+
+    try:
+        con = get_connection()
+        cursor = con.cursor(dictionary=True)
+        cursor.execute(query, args)
+        result = cursor.fetchone()
+        cursor.close()
+        con.close()
+        return result
+    
+    except Exception as e:
+        print(f"ERRO MYSQL: {e}")
+        return None
 
 @app.route('/api/login', methods=['POST'])
 
@@ -38,28 +49,25 @@ def login():
     data = request.get_json()
     user = data.get('user')
     inputSenha = data.get('senha')
-    permissao = data.get('permissao')
-    permissao_mapa = {'ADM': True, 'COM': False}
 
     verify = query_db("SELECT user, senha, permissao FROM usuario WHERE user = %s", (user, ), one=True)
     
     if not verify:
       return jsonify({
+            "success" : False,
             "message" : f"Falha no Login, tente novamente"
         })
 
     if not bcrypt.checkpw(inputSenha.encode('utf-8'), 
                           verify['senha'].encode('utf-8')):
         return jsonify({
-            "message" : f"Falha no Login, tente novamente"
-        })
-
-    if permissao_mapa.get(verify['permissao']) != permissao:
-        return jsonify({
-            "message" : f"Acesso negado, permissão insuficiente"
+            "success" : False,
+            "message" : f"Senha incorreta, favor tentar novamente"
         })
 
     return jsonify({
+        "success" : True,
+        "permissao": verify.get('permissao'),
         "message" : f"Login efetuado com sucesso. Bem-vindo, {verify['user']}"
     })
 
@@ -67,7 +75,7 @@ def login():
 
 def test():
     return jsonify({
-      "message" : "Teste realizado com sucesso."
+      "message" : "Teste de conn Flask"
     })
 
 if __name__ == "__main__":

@@ -1,14 +1,23 @@
 // cd 'PASTA DO app.tsx'
 // npm run dev
+// PARA SALVAR PROJETO NO GIT
+// git init
+// git add .
+// git commit -m "XXX"
+// git push -u origin main
+
+// Usuário admin comum: Username = adm_teste | Senha = 123adm
+// Usuário teste comum: Username = com_teste | Senha = 123
 
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import './App.css'
 
 function App() {  
+  const navigate = useNavigate()
   const [message, setMessage] = useState('')
   const [user, setUser] = useState('')
   const [senha, setSenha] = useState('')
-  const [permissao, setPermissao] = useState(false)
 
   const preventReload = async(e: React.FormEvent) => {
 
@@ -18,13 +27,25 @@ function App() {
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({user, senha, permissao})
+      body: JSON.stringify({user, senha})
     })
       const data = await res.json()
       setMessage(data.message)
 
+      if(data.success) {
+
+        if (data.permissao === 'ADM') {
+          navigate("/admin")
+        } else {
+          navigate("/user")
+        }
+
+      }
+
     } catch (error) {
+
       setMessage('Erro ao conectar com o servidor.')
+      
     }
   }
 
@@ -34,9 +55,7 @@ function App() {
     <div className="containerMain">
       
       <h1>SXF</h1>
-
-      <p>{message}</p>
-
+      
       <div className="containerLogin">
 
         <form className="formLogin" onSubmit={preventReload}>
@@ -58,17 +77,13 @@ function App() {
           onChange = {(e) => setSenha(e.target.value)}
           />
 
-          <p>Sou admin</p>
-          <input
-          type="checkbox"
-          onChange = {(e) => setPermissao(e.target.checked)}
-          />
-
           <button type="submit">Logar</button>
 
         </form> 
 
       </div>
+
+      <p className="resultMessage">{message}</p>
 
       </div>
     </>
