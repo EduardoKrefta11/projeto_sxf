@@ -2,14 +2,14 @@
 ## python -m venv .venv
 ## .venv\Scripts\activate
 ## pip install Flask
-## pip install mysql-connector-python
+## pip install PyMySQL
 ## pip install flask_cors
 ## pip install bcrypt
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS 
 import html
-import mysql.connector
+import pymysql
 import bcrypt
 
 app = Flask(__name__)
@@ -18,13 +18,15 @@ cors = CORS(app, origins='*')
 def get_connection():
 
     try:
-        return mysql.connector.connect(
+        return pymysql.connect(
             host='localhost',
-            user='root',
-            password='j1h43i1y08dsaAKÇ9-009u',
-            database='db_sxf'
+            user='flaskuser',
+            password='123flask',
+            database='db_sxf',
+            charset='utf8mb4',
+            cursorclass=pymysql.cursors.DictCursor
         )
-    except mysql.connector.Error as err:
+    except pymysql.Error as err:
         print(f"Erro MySQL: {err}")
         return None
 
@@ -32,9 +34,11 @@ def query_db(query, args=(), one=False):
 
     try:
         con = get_connection()
-        cursor = con.cursor(dictionary=True)
+        if con is None:
+            return None
+        cursor = con.cursor()
         cursor.execute(query, args)
-        result = cursor.fetchone()
+        result = cursor.fetchone() if one else cursor.fetchall()
         cursor.close()
         con.close()
         return result

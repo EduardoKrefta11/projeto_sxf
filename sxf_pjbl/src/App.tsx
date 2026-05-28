@@ -44,7 +44,7 @@ function App() {
 
     } catch (error) {
 
-      setMessage('Erro ao conectar com o servidor.')
+      setMessage('Erro ao conectar com o servidor')
       
     }
   }
