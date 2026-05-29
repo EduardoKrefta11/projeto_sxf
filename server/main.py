@@ -75,12 +75,5 @@ def login():
         "message" : f"Login efetuado com sucesso. Bem-vindo, {verify['user']}"
     })
 
-@app.route('/', methods=['GET'])
-
-def test():
-    return jsonify({
-      "message" : "Teste de conn Flask"
-    })
-
 if __name__ == "__main__":
     app.run(debug=True)

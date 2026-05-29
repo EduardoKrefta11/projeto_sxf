@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import InstitutoLogo from '../assets/buko_kaesemodel.webp'
 import './Menu.css'
 
 function MenuButton({ texto, onClick} : {texto: string, onClick: any} ) {
@@ -11,29 +12,43 @@ function MenuButton({ texto, onClick} : {texto: string, onClick: any} ) {
 
 function Menu() {
 
-    const [texto, setTexto] = useState('')
-
-    function setHome() {
-        setTexto('Botão de Home funcionando');
-    }
-
-    function setPacientes() {
-        console.log('Botão de Pacientes funcionando');
-    }
-
-    function setEstatisticas() {
-        console.log("Botão de Estatísticas funcionando");
-    }
+    const [pagina, setPagina] = useState('home')
 
     return (
         <>
             <div className="interfaceSuperior">
-                <MenuButton texto="Home" onClick={setHome}/>
-                <MenuButton texto="Pacientes" onClick={setPacientes}/>
-                <MenuButton texto="Estatisticas" onClick={setEstatisticas}/>
+                <MenuButton texto="Home" onClick={() => setPagina('home')}/>
+                <MenuButton texto="Pacientes" onClick={() => setPagina('paciente')}/>
+                <MenuButton texto="Estatisticas" onClick={() => setPagina('estatisticas')}/>
             </div>
 
-            <p className="TextoDebug">{texto}</p>
+            <div className={pagina}>
+
+                {pagina === 'home' && (
+                    <div className="homeDiv">
+                        <h1>Home</h1>
+                        <p>O Instituto Buko Kaesemodel é uma sociedade sem fins lucrativos que tem por objetivo promover ações beneficientes 
+                            relacionadas à assistência social, saúde, educação e meio ambiente. 
+                            Nossa visão de futuro é contribuir com a construção de uma sociedade menos desigual, possibilitando a melhoria da qualidade de vida das pessoas, 
+                            baseando-se pelo respeito à vida, solidariedade e ética.</p>
+                        <img src={InstitutoLogo} alt="Logo Instituto" />
+                    </div>
+                )}
+
+                {pagina === 'paciente' && (
+                    <div className="pacienteDiv">
+                        <h1>Pacientes</h1>
+                    </div>
+                )}
+
+                {pagina === 'estatisticas' && (
+                    <div className="statsDiv">
+                        <h1>Estatísticas</h1>
+                    </div>
+                )}
+
+            </div>
+
         </>
         
     )
