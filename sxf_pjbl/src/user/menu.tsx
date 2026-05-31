@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import InstitutoLogo from '../assets/buko_kaesemodel.webp'
 import './Menu.css'
 
-function MenuButton({ texto, onClick} : {texto: string, onClick: any} ) {
+function MenuButton({ texto, onClick} : {texto: string, onClick: () => void} ) {
     return (
         <button className="menuButton" onClick={onClick}>
             {texto}
@@ -13,6 +13,19 @@ function MenuButton({ texto, onClick} : {texto: string, onClick: any} ) {
 function Menu() {
 
     const [pagina, setPagina] = useState('home')
+    const [pacientes, setPacientes] = useState<any[]>([])
+    const [erro, setErro] = useState('')
+
+    useEffect(() => {
+        if (pagina === 'paciente') {
+            fetch('/api/pacientes')
+                .then((res) => res.json())
+                .then((data) => setPacientes(data))
+                .catch(() => setErro('Erro ao buscar pacientes'))
+        }
+    }, [pagina])
+
+    
 
     return (
         <>
@@ -38,6 +51,22 @@ function Menu() {
                 {pagina === 'paciente' && (
                     <div className="pacienteDiv">
                         <h1>Pacientes</h1>
+                        {erro && <p className="erro">{erro}</p>}
+                        {pacientes.length === 0 ? (
+                            <p>Nenhum paciente encontrado.</p>
+                        ) : (
+                            <ul>
+                                {pacientes.map((paciente, index) => (
+                                    <li key={index}>
+                                        <strong>{paciente.nome}</strong><br />
+                                        Sexo: {paciente.sexo}<br />
+                                        Nascimento: {paciente.dataNascimento}<br />
+                                        Último teste: {paciente.ultimoTeste}<br />
+                                        Criado em: {paciente.dataCriacao}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
                 )}
 

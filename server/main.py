@@ -8,44 +8,11 @@
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS 
-import html
-import pymysql
 import bcrypt
+from db import query_db
 
 app = Flask(__name__)
 cors = CORS(app, origins='*')
-
-def get_connection():
-
-    try:
-        return pymysql.connect(
-            host='localhost',
-            user='flaskuser',
-            password='123flask',
-            database='db_sxf',
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor
-        )
-    except pymysql.Error as err:
-        print(f"Erro MySQL: {err}")
-        return None
-
-def query_db(query, args=(), one=False):
-
-    try:
-        con = get_connection()
-        if con is None:
-            return None
-        cursor = con.cursor()
-        cursor.execute(query, args)
-        result = cursor.fetchone() if one else cursor.fetchall()
-        cursor.close()
-        con.close()
-        return result
-    
-    except Exception as e:
-        print(f"ERRO MYSQL: {e}")
-        return None
 
 @app.route('/api/login', methods=['POST'])
 
@@ -74,6 +41,9 @@ def login():
         "permissao": verify.get('permissao'),
         "message" : f"Login efetuado com sucesso. Bem-vindo, {verify['user']}"
     })
+
+# importa menu para registrar as rotas de paciente
+import menu
 
 if __name__ == "__main__":
     app.run(debug=True)
