@@ -18,8 +18,11 @@ function Menu() {
 
     useEffect(() => {
         if (pagina === 'paciente') {
-            fetch('/api/pacientes')
-                .then((res) => res.json())
+            fetch('/api/pacientes', { credentials: 'include' })
+                .then((res) => {
+                    if (res.status === 401) throw new Error('Não autorizado')
+                    return res.json()
+                })
                 .then((data) => setPacientes(data))
                 .catch(() => setErro('Erro ao buscar pacientes'))
         }
@@ -55,17 +58,20 @@ function Menu() {
                         {pacientes.length === 0 ? (
                             <p>Nenhum paciente encontrado.</p>
                         ) : (
-                            <ul>
+                            <div className="pacientesList">
                                 {pacientes.map((paciente, index) => (
-                                    <li key={index}>
-                                        <strong>{paciente.nome}</strong><br />
-                                        Sexo: {paciente.sexo}<br />
-                                        Nascimento: {paciente.dataNascimento}<br />
-                                        Último teste: {paciente.ultimoTeste}<br />
-                                        Criado em: {paciente.dataCriacao}
-                                    </li>
+                                    <div className="pacienteCard" key={index}>
+                                        <div className="pacienteLeft">
+                                            <div className="pacienteName">{paciente.nome}</div>
+                                            <div className="pacienteInfo">Sexo: {paciente.sexo}<br />Nascimento: {paciente.dataNascimento}</div>
+                                        </div>
+                                        <div className="pacienteRight">
+                                            <div className="pacienteLastTest">Último teste: {paciente.ultimoTeste}</div>
+                                            <div className="pacienteCreated">Criado: {paciente.dataCriacao}</div>
+                                        </div>
+                                    </div>
                                 ))}
-                            </ul>
+                            </div>
                         )}
                     </div>
                 )}

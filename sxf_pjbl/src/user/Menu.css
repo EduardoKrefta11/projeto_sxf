@@ -1,0 +1,65 @@
+.pacientesList {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.pacienteCard {
+	display: flex;
+	justify-content: space-between;
+	align-items: stretch;
+	border: 1px solid #dcdcdc;
+	padding: 12px;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+}
+
+.pacienteLeft {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+}
+
+.pacienteName {
+	font-weight: 700;
+	font-size: 1.05rem;
+	margin-bottom: 6px;
+}
+
+.pacienteInfo {
+	color: #444;
+	font-size: 0.95rem;
+}
+
+.pacienteRight {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: flex-end;
+	min-width: 160px;
+	margin-left: 16px;
+}
+
+.pacienteLastTest {
+	font-weight: 600;
+}
+
+.pacienteCreated {
+	color: #666;
+	font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+	.pacienteCard {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.pacienteRight {
+		align-items: flex-start;
+		margin-left: 0;
+		margin-top: 10px;
+		min-width: auto;
+	}
+}
+

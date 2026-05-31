@@ -6,13 +6,17 @@
 ## pip install flask_cors
 ## pip install bcrypt
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session
 from flask_cors import CORS 
 import bcrypt
+import os
 from db import query_db
 
 app = Flask(__name__)
-cors = CORS(app, origins='*')
+# python -c "import secrets; print(secrets.token_urlsafe(48))"
+app.secret_key = os.environ.get('FLASK_SECRET', '123')
+cors = CORS(app, supports_credentials=True, origins=['http://localhost:5173'])
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 @app.route('/api/login', methods=['POST'])
 
@@ -21,7 +25,7 @@ def login():
     user = data.get('user')
     inputSenha = data.get('senha')
 
-    verify = query_db("SELECT user, senha, permissao FROM usuario WHERE user = %s", (user, ), one=True)
+    verify = query_db("SELECT id, user, senha, permissao FROM usuario WHERE user = %s", (user, ), one=True)
     
     if not verify:
       return jsonify({
@@ -35,6 +39,9 @@ def login():
             "success" : False,
             "message" : f"Senha incorreta, favor tentar novamente"
         })
+
+    session['user_id'] = verify.get('id')
+    session['permissao'] = verify.get('permissao')
 
     return jsonify({
         "success" : True,
