@@ -49,7 +49,6 @@ def login():
         "message" : f"Login efetuado com sucesso. Bem-vindo, {verify['user']}"
     })
 
-# importa menu para registrar as rotas de paciente
 import menu
 
 if __name__ == "__main__":

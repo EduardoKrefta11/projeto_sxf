@@ -50,6 +50,80 @@
 	font-size: 0.9rem;
 }
 
+.statsDiv {
+	padding: 20px;
+	max-width: 1000px;
+}
+
+.statsControls {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+	margin-bottom: 30px;
+	background: #f8f9fa;
+	padding: 20px;
+	border-radius: 8px;
+}
+
+.controlGroup {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.controlGroup label {
+	font-weight: 600;
+	color: #333;
+	font-size: 0.95rem;
+}
+
+.buttonGroup {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.buttonGroup button {
+	padding: 10px 16px;
+	border: 1px solid #dcdcdc;
+	background: #fff;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.9rem;
+	transition: all 0.2s;
+	color: #333;
+}
+
+.buttonGroup button:hover {
+	border-color: #75b7bb;
+	background: #f0f8f9;
+}
+
+.buttonGroup button.active {
+	background: #75b7bb;
+	color: #fff;
+	border-color: #75b7bb;
+}
+
+.chartContainer {
+	background: #fff;
+	padding: 20px;
+	border-radius: 8px;
+	border: 1px solid #dcdcdc;
+	max-width: 800px;
+	height: 400px;
+	position: relative;
+}
+
+.erro {
+	color: #dc3545;
+	padding: 12px;
+	background: #f8d7da;
+	border: 1px solid #f5c6cb;
+	border-radius: 6px;
+	margin-bottom: 20px;
+}
+
 @media (max-width: 600px) {
 	.pacienteCard {
 		flex-direction: column;
@@ -60,6 +134,22 @@
 		margin-left: 0;
 		margin-top: 10px;
 		min-width: auto;
+	}
+
+	.buttonGroup {
+		flex-direction: column;
+	}
+
+	.buttonGroup button {
+		width: 100%;
+	}
+
+	.statsControls {
+		padding: 15px;
+	}
+
+	.chartContainer {
+		height: 300px;
 	}
 }
 
