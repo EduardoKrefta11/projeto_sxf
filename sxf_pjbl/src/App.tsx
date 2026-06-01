@@ -27,6 +27,7 @@ function App() {
     const res = await fetch('/api/login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
+      credentials: 'include',
       body: JSON.stringify({user, senha})
     })
       const data = await res.json()
@@ -61,7 +62,6 @@ function App() {
         <form className="formLogin" onSubmit={preventReload}>
 
           <h2>Login</h2>
-          <p>desgraça games</p>
 
           <input 
           type="text" 

@@ -27,7 +27,7 @@ function Menu() {
 
     useEffect(() => {
         if (pagina === 'paciente') {
-            fetch('/api/pacientes', { credentials: 'include' })
+            fetch('/api/meus_pacientes', { credentials: 'include' })
                 .then((res) => {
                     if (res.status === 401) throw new Error('Não autorizado')
                     return res.json()
