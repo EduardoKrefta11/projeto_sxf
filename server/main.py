@@ -11,8 +11,11 @@ from flask_cors import CORS
 import bcrypt
 import os
 from db import query_db
+from admin_api import register_admin_routes
+
 
 app = Flask(__name__)
+register_admin_routes(app)
 # python -c "import secrets; print(secrets.token_urlsafe(48))"
 app.secret_key = os.environ.get('FLASK_SECRET', '123')
 cors = CORS(app, supports_credentials=True, origins=['http://localhost:5173'])

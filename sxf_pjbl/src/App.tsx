@@ -61,7 +61,7 @@ function App() {
         <form className="formLogin" onSubmit={preventReload}>
 
           <h2>Login</h2>
-          <p>Bem vindo</p>
+          <p>desgraça games</p>
 
           <input 
           type="text" 
