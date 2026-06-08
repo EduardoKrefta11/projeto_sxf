@@ -4,6 +4,11 @@
 	gap: 10px;
 }
 
+.pacienteFoto {
+	width: 10px;
+	height: 10px;
+}
+
 .pacienteCard {
 	display: flex;
 	justify-content: space-between;

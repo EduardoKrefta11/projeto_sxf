@@ -16,16 +16,65 @@ def get_connection():
 
 
 def query_db(query, args=(), one=False):
+
+    con = None
+    cursor = None
+
     try:
         con = get_connection()
+
         if con is None:
             return None
+        
         cursor = con.cursor()
+
         cursor.execute(query, args)
+
         result = cursor.fetchone() if one else cursor.fetchall()
-        cursor.close()
-        con.close()
+
         return result
+    
     except Exception as e:
+
         print(f"ERRO MYSQL: {e}")
+
         return None
+    
+    finally:
+
+        if cursor:
+            cursor.close()
+        if con:
+            con.close()
+
+def execute_db(query, args=(), one=False):
+
+    con = None
+    cursor = None
+
+    try:
+        con = get_connection()
+
+        if con is None:
+            return None
+        
+        cursor = con.cursor()
+
+        cursor.execute(query, args)
+
+        con.commit()
+
+        return True
+    
+    except Exception as e:
+
+        print(f"ERRO MYSQL: {e}")
+
+        return None
+    
+    finally:
+
+        if cursor:
+            cursor.close()
+        if con:    
+            con.close()

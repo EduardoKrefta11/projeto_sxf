@@ -1,5 +1,5 @@
 from flask import jsonify, request, session
-from db import query_db
+from db import query_db, execute_db
 import bcrypt
 
 def register_admin_routes(app):

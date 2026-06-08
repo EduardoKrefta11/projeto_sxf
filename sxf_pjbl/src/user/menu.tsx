@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js'
 import { Chart, Bar, Line, Pie } from 'react-chartjs-2'
-import InstitutoLogo from '../assets/buko_kaesemodel.webp'
+import defaultPFP from '../assets/default.png' // NOTA: ADICIONAR defaultPFP em foto de Perfil do usuário e do paciente 
 import './Menu.css'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend)
@@ -18,12 +18,31 @@ function Menu() {
 
     const [pagina, setPagina] = useState('home')
     const [pacientes, setPacientes] = useState<any[]>([])
+    const [perfil, setPerfil] = useState<any>(null)
     const [erro, setErro] = useState('')
 
     const [organizacao, setOrganizacao] = useState('genero')
     const [tipoGrafico, setTipoGrafico] = useState('colunas')
+    const [sexo, setSexo] = useState('')
+    const [nascimentoMin, setNascimentoMin] = useState('')
+    const [nascimentoMax, setNascimentoMax] = useState('')
     const [statsData, setStatsData] = useState<{labels: string[], valores: number[]} | null>(null)
     const [loadingStats, setLoadingStats] = useState(false)
+
+    useEffect(() => {
+        if (pagina === 'home') {
+            fetch('/api/meu_perfil', {credentials: 'include'})
+            .then((res) => {
+                if (res.status === 401) throw new Error('Não autorizado')
+                return res.json()
+            })
+            .then((data) => {
+                console.log("Perfil recebido", data)
+                setPerfil(data)
+            })
+            .catch(() => setErro('Erro ao buscar perfil do usuário'))
+        }
+    }, [pagina])
 
     useEffect(() => {
         if (pagina === 'paciente') {
@@ -41,11 +60,36 @@ function Menu() {
         if (pagina === 'estatisticas') {
             carregarEstatisticas()
         }
-    }, [pagina, organizacao])
+    }, [pagina,
+        organizacao,
+        sexo,
+        nascimentoMin,
+        nascimentoMax]
+    )
 
     const carregarEstatisticas = () => {
-        setLoadingStats(true)
-        fetch(`/api/stats?organizacao=${organizacao}`, { credentials: 'include' })
+
+            setLoadingStats(true)
+
+            const params = new URLSearchParams()
+
+            params.append('organizacao', organizacao)
+
+            if (sexo) {
+                params.append('sexo', sexo)
+            }
+
+            if (nascimentoMin) {
+                params.append('nascimentoMin', nascimentoMin)
+            }
+
+            if (nascimentoMax) {
+                params.append('nascimentoMax', nascimentoMax)
+            }
+
+            fetch(`/api/stats?${params.toString()}`, {
+                credentials: 'include'
+            })
             .then((res) => {
                 if (res.status === 401) throw new Error('Não autorizado')
                 return res.json()
@@ -86,7 +130,7 @@ function Menu() {
             case 'pizza':
                 return <Pie data={chartConfig} options={opcoes} />
             case 'barras':
-                return <Bar data={{...chartConfig, datasets: [{...chartConfig.datasets[0], indexAxis: 'y' as const}]}} options={opcoes} />
+                return (<Bar data={chartConfig} options={{...opcoes, indexAxis: 'y' as const}}/>)
             default:
                 return null
         }
@@ -103,13 +147,43 @@ function Menu() {
             <div className={pagina}>
 
                 {pagina === 'home' && (
-                    <div className="homeDiv">
-                        <h1>Home</h1>
-                        <p>O Instituto Buko Kaesemodel é uma sociedade sem fins lucrativos que tem por objetivo promover ações beneficientes 
-                            relacionadas à assistência social, saúde, educação e meio ambiente. 
-                            Nossa visão de futuro é contribuir com a construção de uma sociedade menos desigual, possibilitando a melhoria da qualidade de vida das pessoas, 
-                            baseando-se pelo respeito à vida, solidariedade e ética.</p>
-                        <img src={InstitutoLogo} alt="Logo Instituto" />
+                    <div className="perfilDiv">
+
+                        <h1>Meu Perfil</h1>
+                        {erro && <p className="erro">{erro}</p>}
+
+                        {perfil ? (
+                            <div className="perfilCard">
+
+                                <img
+                                    className="perfilFoto"
+                                    src={perfil.fotoPerfil}
+                                    alt="Foto de Perfil"
+                                />
+
+                                <div className="perfilInfo">
+
+                                    <h2>{perfil.nome}</h2>
+
+                                    <p>
+                                        <strong>Usuário:</strong> {perfil.user}
+                                    </p>
+
+                                    <p>
+                                        <strong>Data de nascimento:</strong> {perfil.dataNascimento}
+                                    </p>
+
+                                    <p>
+                                        <strong>Conta criada em:</strong> {perfil.dataCriacao}
+                                    </p>
+
+                                </div>
+
+                            </div>
+                        ) : (
+                            <p>Carregando perfil...</p>
+                        )}
+
                     </div>
                 )}
 
@@ -124,12 +198,28 @@ function Menu() {
                                 {pacientes.map((paciente, index) => (
                                     <div className="pacienteCard" key={index}>
                                         <div className="pacienteLeft">
-                                            <div className="pacienteName">{paciente.nome}</div>
-                                            <div className="pacienteInfo">Sexo: {paciente.sexo}<br />Nascimento: {paciente.dataNascimento}</div>
+                                            <img
+                                                className="pacienteFoto"
+                                                src={paciente.fotoPerfil}
+                                                alt={paciente.nome}
+                                            />
+                                            <div>
+                                                <div className="pacienteName">
+                                                    {paciente.nome}
+                                                </div>
+                                                <div className="pacienteInfo">
+                                                    Sexo: {paciente.sexo}
+                                                    <br />
+                                                    Nascimento: {paciente.dataNascimento}
+                                                </div>
+                                            </div>
                                         </div>
                                         <div className="pacienteRight">
                                             <div className="pacienteLastTest">Último teste: {paciente.ultimoTeste}</div>
                                             <div className="pacienteCreated">Criado: {paciente.dataCriacao}</div>
+                                            <button className="pdfButton" onClick={() => window.open(`/api/pdf/paciente/${paciente.id}`, '_blank')}>
+                                                Gerar PDF
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -144,7 +234,41 @@ function Menu() {
                         {erro && <p className="erro">{erro}</p>}
                         
                         <div className="statsControls">
-                            <div className="controlGroup">
+
+                                <div className="controlGroup">
+                                    <label>Sexo:</label>
+
+                                    <select
+                                        value={sexo}
+                                        onChange={(e) => setSexo(e.target.value)}
+                                    >
+                                        <option value="">Todos</option>
+                                        <option value="Masculino">Masculino</option>
+                                        <option value="Feminino">Feminino</option>
+                                    </select>
+                                </div>
+
+                                <div className="controlGroup">
+
+                                    <label>Nascimento mínimo:</label>
+
+                                    <input
+                                        type="date"
+                                        value={nascimentoMin}
+                                        onChange={(e) => setNascimentoMin(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="controlGroup">
+                                    <label>Nascimento máximo:</label>
+
+                                    <input
+                                        type="date"
+                                        value={nascimentoMax}
+                                        onChange={(e) => setNascimentoMax(e.target.value)}
+                                    />
+                                </div>
+
                                 <label>Organizar por:</label>
                                 <div className="buttonGroup">
                                     <button className={organizacao === 'genero' ? 'active' : ''} onClick={() => setOrganizacao('genero')}>Gênero</button>
@@ -152,9 +276,8 @@ function Menu() {
                                     <button className={organizacao === 'sintoma' ? 'active' : ''} onClick={() => setOrganizacao('sintoma')}>Sintoma</button>
                                     <button className={organizacao === 'peso' ? 'active' : ''} onClick={() => setOrganizacao('peso')}>Peso</button>
                                 </div>
-                            </div>
 
-                            <div className="controlGroup">
+                                <div className="controlGroup">
                                 <label>Tipo de gráfico:</label>
                                 <div className="buttonGroup">
                                     <button className={tipoGrafico === 'colunas' ? 'active' : ''} onClick={() => setTipoGrafico('colunas')}>Colunas</button>
@@ -163,6 +286,7 @@ function Menu() {
                                     <button className={tipoGrafico === 'barras' ? 'active' : ''} onClick={() => setTipoGrafico('barras')}>Barras</button>
                                 </div>
                             </div>
+
                         </div>
 
                         {loadingStats ? (
