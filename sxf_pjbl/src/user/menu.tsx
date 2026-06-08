@@ -20,12 +20,38 @@ function Menu() {
     const [pacientes, setPacientes] = useState<any[]>([])
     const [perfil, setPerfil] = useState<any>(null)
     const [erro, setErro] = useState('')
+    const formatarData = (dataString: string) => {
+
+        if (!dataString) return '-'
+
+        const data = new Date(dataString)
+
+        return data.toLocaleDateString('pt-BR')
+    }
+
+    const formatarDataHora = (dataString: string) => {
+
+        if (!dataString) return '-'
+
+        const data = new Date(dataString)
+
+        return data.toLocaleString('pt-BR')
+    }
+
 
     const [organizacao, setOrganizacao] = useState('genero')
     const [tipoGrafico, setTipoGrafico] = useState('colunas')
+
+    const [sintomasBuscados, setSintomasBuscados] = useState<
+        { id: number; nome: string }[]
+    >([])
+    const [sintoma, setSintoma] = useState('')
+    const [pontuacaoMin, setPontuacaoMin] = useState('')
+    const [pontuacaoMax, setPontuacaoMax] = useState('')
     const [sexo, setSexo] = useState('')
     const [nascimentoMin, setNascimentoMin] = useState('')
     const [nascimentoMax, setNascimentoMax] = useState('')
+
     const [statsData, setStatsData] = useState<{labels: string[], valores: number[]} | null>(null)
     const [loadingStats, setLoadingStats] = useState(false)
 
@@ -37,7 +63,7 @@ function Menu() {
                 return res.json()
             })
             .then((data) => {
-                console.log("Perfil recebido", data)
+                console.log(data)
                 setPerfil(data)
             })
             .catch(() => setErro('Erro ao buscar perfil do usuário'))
@@ -58,13 +84,28 @@ function Menu() {
 
     useEffect(() => {
         if (pagina === 'estatisticas') {
+            fetch('/api/buscar_sintomas', { credentials: 'include' })
+                .then((res) => {
+                    if (res.status === 401) throw new Error('Não autorizado')
+                    return res.json()
+                })
+                .then((data) => setSintomasBuscados(data))
+                .catch(() => setErro('Erro ao buscar sintomas'))
+        }
+    }, [pagina])
+
+    useEffect(() => {
+        if (pagina === 'estatisticas') {
             carregarEstatisticas()
         }
     }, [pagina,
         organizacao,
         sexo,
         nascimentoMin,
-        nascimentoMax]
+        nascimentoMax,
+        sintoma,
+        pontuacaoMin,
+        pontuacaoMax]
     )
 
     const carregarEstatisticas = () => {
@@ -87,6 +128,18 @@ function Menu() {
                 params.append('nascimentoMax', nascimentoMax)
             }
 
+            if (sintoma) {
+                params.append('sintoma', sintoma)
+            }
+
+            if (pontuacaoMin) {
+                params.append('pontuacaoMin', pontuacaoMin)
+            }
+
+            if (pontuacaoMax) {
+                params.append('pontuacaoMax', pontuacaoMax)
+            }
+
             fetch(`/api/stats?${params.toString()}`, {
                 credentials: 'include'
             })
@@ -107,8 +160,22 @@ function Menu() {
             datasets: [{
                 label: 'Quantidade',
                 data: statsData.valores,
-                backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: [
+                    '#36A2EB',
+                    '#FF6384',
+                    '#FFCE56',
+                    '#4BC0C0',
+                    '#9966FF',
+                    '#FF9F40'
+                ],
+                borderColor: [
+                    '#36A2EB',
+                    '#FF6384',
+                    '#FFCE56',
+                    '#4BC0C0',
+                    '#9966FF',
+                    '#FF9F40'
+                ],
                 borderWidth: 1,
             }]
         }
@@ -170,11 +237,11 @@ function Menu() {
                                     </p>
 
                                     <p>
-                                        <strong>Data de nascimento:</strong> {perfil.dataNascimento}
+                                        <strong>Data de nascimento:</strong> {formatarData(perfil.dataNascimento)}
                                     </p>
 
                                     <p>
-                                        <strong>Conta criada em:</strong> {perfil.dataCriacao}
+                                        <strong>Conta criada em:</strong> {formatarDataHora(perfil.dataCriacao)}
                                     </p>
 
                                 </div>
@@ -210,13 +277,13 @@ function Menu() {
                                                 <div className="pacienteInfo">
                                                     Sexo: {paciente.sexo}
                                                     <br />
-                                                    Nascimento: {paciente.dataNascimento}
+                                                    Nascimento: {formatarData(paciente.dataNascimento)}
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="pacienteRight">
-                                            <div className="pacienteLastTest">Último teste: {paciente.ultimoTeste}</div>
-                                            <div className="pacienteCreated">Criado: {paciente.dataCriacao}</div>
+                                            <div className="pacienteLastTest">Último teste: {formatarDataHora(paciente.ultimoTeste)}</div>
+                                            <div className="pacienteCreated">Criado: {formatarDataHora(paciente.dataCriacao)}</div>
                                             <button className="pdfButton" onClick={() => window.open(`/api/pdf/paciente/${paciente.id}`, '_blank')}>
                                                 Gerar PDF
                                             </button>
@@ -269,6 +336,43 @@ function Menu() {
                                     />
                                 </div>
 
+                                <div className="controlGroup">
+                                    <label>Sintoma</label>
+
+                                    <select
+                                        value={sintoma}
+                                        onChange={(e) => setSintoma(e.target.value)}
+                                    >
+                                        <option value="">Todos</option>
+
+                                        {sintomasBuscados.map((s) => (
+                                            <option key={s.id} value={s.nome}>
+                                                {s.nome}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="controlGroup">
+                                    <label>Pontuação Mínima:</label>
+
+                                    <input
+                                        type="number"
+                                        value={pontuacaoMin}
+                                        onChange={(e) => setPontuacaoMin(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="controlGroup">
+                                    <label>Pontuação Máxima:</label>
+
+                                    <input
+                                        type="number"
+                                        value={pontuacaoMax}
+                                        onChange={(e) => setPontuacaoMax(e.target.value)}
+                                    />
+                                </div>
+
                                 <label>Organizar por:</label>
                                 <div className="buttonGroup">
                                     <button className={organizacao === 'genero' ? 'active' : ''} onClick={() => setOrganizacao('genero')}>Gênero</button>
@@ -285,6 +389,11 @@ function Menu() {
                                     <button className={tipoGrafico === 'pizza' ? 'active' : ''} onClick={() => setTipoGrafico('pizza')}>Pizza</button>
                                     <button className={tipoGrafico === 'barras' ? 'active' : ''} onClick={() => setTipoGrafico('barras')}>Barras</button>
                                 </div>
+
+                                <button className="pdfStatsButton" onClick={() => window.open(`/api/pdf/stats`, '_blank')}>
+                                    Gerar PDF Estatístico
+                                </button>
+
                             </div>
 
                         </div>

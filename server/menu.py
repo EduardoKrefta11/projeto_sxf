@@ -1,10 +1,11 @@
 from flask import jsonify, session, request, send_file
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
 from io import BytesIO
+import os
 from db import query_db, execute_db
 
-# FUNÇÃO PARA MONTAR FILTROS
 def montar_filtros(user_id):
 
     filtros = ["p.idPesquisador = %s"]
@@ -27,6 +28,24 @@ def montar_filtros(user_id):
     if nascimento_max:
         filtros.append("p.dataNascimento <= %s")
         parametros.append(nascimento_max)
+
+    sintoma = request.args.get("sintoma")
+
+    if sintoma:
+        filtros.append("s.nome = %s")
+        parametros.append(sintoma)
+
+    pontuacao_min = request.args.get("pontuacaoMin")
+
+    if pontuacao_min:
+        filtros.append("c.pontuacao >= %s")
+        parametros.append(pontuacao_min)
+
+    pontuacao_max = request.args.get("pontuacaoMax")
+
+    if pontuacao_max:
+        filtros.append("c.pontuacao <= %s")
+        parametros.append(pontuacao_max)
 
     return filtros, parametros
 
@@ -118,14 +137,36 @@ def register_menu_routes(app):
 
         pdf = canvas.Canvas(buffer, pagesize=A4)
 
-        pdf.setTitle(f"Paciente_{paciente['nome']}")
+        logo_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "sxf_pjbl",
+            "src",
+            "assets",
+            "buko_kaesemodel.webp"
+        )
 
-        y = 800
+        pdf.drawImage(
+            logo_path,
+            150,
+            730,
+            width=300,
+            height=110,
+            mask='auto'
+        )
+
+        pdf.line(50, 715, 550, 715)
 
         pdf.setFont("Helvetica-Bold", 16)
-        pdf.drawString(50, y, "RELATÓRIO DO PACIENTE")
+        pdf.drawCentredString(
+            300,
+            690,
+            f"RELATÓRIO CLÍNICO - {paciente['nome']}"
+        )
 
-        y -= 50
+        pdf.line(50, 670, 550, 670)
+
+        y = 650
 
         pdf.setFont("Helvetica", 12)
 
@@ -242,6 +283,24 @@ def register_menu_routes(app):
             download_name=f"paciente_{paciente_id}.pdf",
             mimetype="application/pdf"
         )
+    
+    @app.route('/api/buscar_sintomas', methods=['GET'])
+    def listar_sintomas():
+
+        user_id = session.get('user_id')
+
+        if not user_id:
+            return jsonify({"error": "Não autorizado"}), 401
+
+        sintomas = query_db("""
+            SELECT
+                id,
+                nome
+            FROM sintoma
+            ORDER BY nome
+        """)
+
+        return jsonify(sintomas)
 
     @app.route('/api/stats', methods=['GET'])
     def obter_estatisticas():
@@ -262,8 +321,16 @@ def register_menu_routes(app):
             query = f"""
                 SELECT
                     p.sexo as label,
-                    COUNT(*) as valor
+                    COUNT(DISTINCT p.id) as valor
                 FROM paciente p
+                LEFT JOIN consulta c
+                    ON c.idPaciente = p.id
+
+                LEFT JOIN consultaSintoma cs
+                    ON cs.idConsulta = c.id
+
+                LEFT JOIN sintoma s
+                    ON s.id = cs.idSintoma
                 WHERE {where_clause}
                 GROUP BY p.sexo
             """
@@ -273,10 +340,14 @@ def register_menu_routes(app):
             query = f"""
                 SELECT
                     DATE(c.dataHora) as label,
-                    COUNT(*) as valor
+                    COUNT(DISTINCT p.id) as valor
                 FROM consulta c
                 INNER JOIN paciente p
                     ON c.idPaciente = p.id
+                LEFT JOIN consultaSintoma cs
+                    ON cs.idConsulta = c.id
+                LEFT JOIN sintoma s
+                    ON s.id = cs.idSintoma
                 WHERE {where_clause}
                 GROUP BY DATE(c.dataHora)
                 ORDER BY label
