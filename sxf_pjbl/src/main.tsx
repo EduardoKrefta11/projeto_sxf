@@ -4,8 +4,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 import './index.css'
 import App from './App.tsx'
-import Admin from "./admin/admin.tsx"
-import User from "./user/menu.tsx"
+import Admin from "./Admin/admin.tsx"
+import User from "./User/Menu.tsx"
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

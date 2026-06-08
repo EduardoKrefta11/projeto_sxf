@@ -11,6 +11,7 @@ function Admin() {
     const [mostrarFormUsuario, setMostrarFormUsuario] = useState(false)
     const [mostrarFormPaciente, setMostrarFormPaciente] = useState(false)
     const [mostrarFormSintoma, setMostrarFormSintoma] = useState(false)
+    const [usuarioEditandoId, setUsuarioEditandoId] = useState<number | null>(null)
     
     const [novoUsuario, setNovoUsuario] = useState({
         nome: '', user: '', senha: '', permissao: 'COM', dataNascimento: ''
@@ -60,22 +61,45 @@ function Admin() {
 
     const salvarUsuario = async (e: React.FormEvent) => {
         e.preventDefault()
+
         try {
-            const res = await fetch('/api/usuarios', {
-                method: 'POST',
+            const isEdicao = usuarioEditandoId !== null
+
+            const url = isEdicao
+                ? `/api/usuarios/${usuarioEditandoId}`
+                : '/api/usuarios'
+
+            const method = isEdicao ? 'PUT' : 'POST'
+
+            const res = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(novoUsuario),
                 credentials: 'include'
             })
+
             if (res.ok) {
-                alert('Usuário cadastrado!')
+                alert(isEdicao ? 'Usuário atualizado!' : 'Usuário cadastrado!')
+
                 setMostrarFormUsuario(false)
-                setNovoUsuario({ nome: '', user: '', senha: '', permissao: 'COM', dataNascimento: '' })
+                setUsuarioEditandoId(null)
+
+                setNovoUsuario({
+                    nome: '',
+                    user: '',
+                    senha: '',
+                    permissao: 'COM',
+                    dataNascimento: ''
+                })
+
                 buscarUsuarios()
             } else {
-                alert('Erro ao cadastrar usuário.')
+                alert('Erro ao salvar usuário.')
             }
-        } catch (error) { alert('Erro ao salvar.') }
+
+        } catch (error) {
+            alert('Erro ao salvar.')
+        }
     }
 
     const salvarPaciente = async (e: React.FormEvent) => {
@@ -148,7 +172,15 @@ function Admin() {
                                     <div className="formGroup"><label>Senha:</label><input type="password" value={novoUsuario.senha} onChange={(e) => setNovoUsuario({...novoUsuario, senha: e.target.value})} required /></div>
                                     <div className="formGroup"><label>Data de Nascimento:</label><input type="date" value={novoUsuario.dataNascimento} onChange={(e) => setNovoUsuario({...novoUsuario, dataNascimento: e.target.value})} required /></div>
                                     <div className="formGroup"><label>Permissão:</label><select value={novoUsuario.permissao} onChange={(e) => setNovoUsuario({...novoUsuario, permissao: e.target.value})}><option value="COM">Comum (Médico/Pesquisador)</option><option value="ADM">Administrador</option></select></div>
-                                    <div className="formActions"><button type="submit" className="btnSave">Salvar</button><button type="button" className="btnCancel" onClick={() => setMostrarFormUsuario(false)}>Cancelar</button></div>
+                                    <div className="formActions">
+                                        <button type="submit" className="btnSave">Salvar</button>
+                                        <button type="button" className="btnCancel"
+                                            onClick={() => {
+                                                setMostrarFormUsuario(false)
+                                                setUsuarioEditandoId(null)
+                                            }}>Cancelar
+                                        </button>
+                                    </div>
                                 </form>
                             )}
 
@@ -162,7 +194,17 @@ function Admin() {
                                             <p><strong>Permissão:</strong> {u.permissao}</p>
                                         </div>
                                         <div className="userActions">
-                                            <button className="btnEdit" onClick={() => alert('Em breve')}>Editar</button>
+                                            <button className="btnEdit" onClick={() => {
+                                                setUsuarioEditandoId(u.id)
+                                                setMostrarFormUsuario(true)
+                                                setNovoUsuario({
+                                                    nome: u.nome,
+                                                    user: u.user,
+                                                    senha: '',
+                                                    permissao: u.permissao,
+                                                    dataNascimento: u.dataNascimento || ''
+                                                })
+                                            }}>Editar</button>
                                             <button className="btnDelete" onClick={() => excluirItem('/api/usuarios', u.id, buscarUsuarios)}>Excluir</button>
                                         </div>
                                     </div>

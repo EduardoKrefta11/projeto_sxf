@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js'
-import { Chart, Bar, Line, Pie } from 'react-chartjs-2'
+import { Bar, Line, Pie } from 'react-chartjs-2'
 import defaultPFP from '../assets/default.png' // NOTA: ADICIONAR defaultPFP em foto de Perfil do usuário e do paciente 
 import './Menu.css'
 
@@ -41,7 +41,6 @@ function Menu() {
     }
 
 
-    const [organizacao, setOrganizacao] = useState('genero')
     const [tipoGrafico, setTipoGrafico] = useState('colunas')
 
     const [sintomasBuscados, setSintomasBuscados] = useState<
@@ -101,7 +100,6 @@ function Menu() {
             carregarEstatisticas()
         }
     }, [pagina,
-        organizacao,
         sexo,
         nascimentoMin,
         nascimentoMax,
@@ -115,8 +113,6 @@ function Menu() {
             setLoadingStats(true)
 
             const params = new URLSearchParams()
-
-            params.append('organizacao', organizacao)
 
             if (sexo) {
                 params.append('sexo', sexo)
@@ -389,14 +385,6 @@ function Menu() {
                                         value={pontuacaoMax}
                                         onChange={(e) => setPontuacaoMax(e.target.value)}
                                     />
-                                </div>
-
-                                <label>Organizar por:</label>
-                                <div className="buttonGroup">
-                                    <button className={organizacao === 'genero' ? 'active' : ''} onClick={() => setOrganizacao('genero')}>Gênero</button>
-                                    <button className={organizacao === 'data' ? 'active' : ''} onClick={() => setOrganizacao('data')}>Data</button>
-                                    <button className={organizacao === 'sintoma' ? 'active' : ''} onClick={() => setOrganizacao('sintoma')}>Sintoma</button>
-                                    <button className={organizacao === 'peso' ? 'active' : ''} onClick={() => setOrganizacao('peso')}>Peso</button>
                                 </div>
 
                                 <div className="controlGroup">
