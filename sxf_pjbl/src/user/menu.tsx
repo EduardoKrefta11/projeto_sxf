@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js'
 import { Chart, Bar, Line, Pie } from 'react-chartjs-2'
 import defaultPFP from '../assets/default.png' // NOTA: ADICIONAR defaultPFP em foto de Perfil do usuário e do paciente 
@@ -16,6 +17,7 @@ function MenuButton({ texto, onClick} : {texto: string, onClick: () => void} ) {
 
 function Menu() {
 
+    const navigate = useNavigate()
     const [pagina, setPagina] = useState('home')
     const [pacientes, setPacientes] = useState<any[]>([])
     const [perfil, setPerfil] = useState<any>(null)
@@ -152,6 +154,18 @@ function Menu() {
             .finally(() => setLoadingStats(false))
     }
 
+    const logout = async () => {
+        try {
+            await fetch('/api/logout', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            navigate('/', { replace: true })
+        } catch (error) {
+            console.error('Erro ao fazer logout:', error)
+        }
+    }
+
     const obterGrafico = () => {
         if (!statsData) return null
 
@@ -224,7 +238,7 @@ function Menu() {
 
                                 <img
                                     className="perfilFoto"
-                                    src={perfil.fotoPerfil}
+                                    src={perfil.fotoPerfil || defaultPFP}
                                     alt="Foto de Perfil"
                                 />
 
@@ -243,6 +257,10 @@ function Menu() {
                                     <p>
                                         <strong>Conta criada em:</strong> {formatarDataHora(perfil.dataCriacao)}
                                     </p>
+
+                                    <button className="logoutButton" onClick={logout}>
+                                        Sair
+                                    </button>
 
                                 </div>
 
@@ -267,7 +285,7 @@ function Menu() {
                                         <div className="pacienteLeft">
                                             <img
                                                 className="pacienteFoto"
-                                                src={paciente.fotoPerfil}
+                                                src={paciente.fotoPerfil || defaultPFP}
                                                 alt={paciente.nome}
                                             />
                                             <div>

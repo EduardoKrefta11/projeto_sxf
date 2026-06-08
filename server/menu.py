@@ -280,7 +280,7 @@ def register_menu_routes(app):
         return send_file(
             buffer,
             as_attachment=True,
-            download_name=f"paciente_{paciente_id}.pdf",
+            download_name=f"Relatorio_paciente.pdf",
             mimetype="application/pdf"
         )
     

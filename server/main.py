@@ -56,6 +56,11 @@ def login():
     })
     return response
 
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({"message": "Desconectado com sucesso"}), 200
+
 import menu
 
 if __name__ == "__main__":

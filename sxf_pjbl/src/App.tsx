@@ -55,7 +55,7 @@ function App() {
 
     <div className="containerMain">
       
-      <h1>SXF</h1>
+      <h1>IBK</h1>
       
       <div className="containerLogin">
 
