@@ -47,7 +47,7 @@ def query_db(query, args=(), one=False):
         if con:
             con.close()
 
-def execute_db(query, args=(), one=False):
+def execute_db(query, args=()):
 
     con = None
     cursor = None

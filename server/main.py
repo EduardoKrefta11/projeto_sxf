@@ -21,7 +21,6 @@ register_menu_routes(app)
 # python -c "import secrets; print(secrets.token_urlsafe(48))"
 app.secret_key = os.environ.get('FLASK_SECRET', '123')
 cors = CORS(app, supports_credentials=True, origins=['http://localhost:5173'], allow_headers=['Content-Type'])
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 @app.route('/api/login', methods=['POST'])
 
@@ -47,7 +46,6 @@ def login():
 
     session['user_id'] = verify.get('id')
     session['permissao'] = verify.get('permissao')
-    print(f"[SESSION] Current session: {dict(session)}")
 
     response = jsonify({
         "success" : True,

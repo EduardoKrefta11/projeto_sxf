@@ -123,14 +123,6 @@
 	min-height: calc(100vh - 160px);
 }
 
-.estadisticas h1 {
-	width: 100%;
-	text-align: center;
-	margin: 0 0 20px 0;
-	color: #23544f;
-	font-size: 2rem;
-}
-
 .statsDiv {
 	display: flex;
 	flex-direction: row;

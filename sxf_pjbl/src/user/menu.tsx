@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js'
-import { Bar, Line, Pie } from 'react-chartjs-2'
+import { Chart, Bar, Line, Pie } from 'react-chartjs-2'
 import defaultPFP from '../assets/default.png' // NOTA: ADICIONAR defaultPFP em foto de Perfil do usuário e do paciente 
 import './Menu.css'
 
@@ -64,7 +64,6 @@ function Menu() {
                 return res.json()
             })
             .then((data) => {
-                console.log(data)
                 setPerfil(data)
             })
             .catch(() => setErro('Erro ao buscar perfil do usuário'))
@@ -145,7 +144,9 @@ function Menu() {
                 if (res.status === 401) throw new Error('Não autorizado')
                 return res.json()
             })
-            .then((data) => setStatsData(data))
+            .then((data) => {
+                setStatsData(data)
+            })
             .catch(() => setErro('Erro ao buscar estatísticas'))
             .finally(() => setLoadingStats(false))
     }
@@ -163,13 +164,26 @@ function Menu() {
     }
 
     const obterGrafico = () => {
+        console.log("ANTES DO CHART:", statsData)
+        console.log(
+            "LABELS",
+            statsData?.labels,
+            statsData?.labels?.length
+        )
+
+        console.log(
+            "VALORES",
+            statsData?.valores,
+            statsData?.valores?.length
+        )
+
         if (!statsData) return null
 
         const chartConfig = {
-            labels: statsData.labels,
+            labels: [...statsData.labels],
             datasets: [{
                 label: 'Quantidade',
-                data: statsData.valores,
+                data: [...statsData.valores],
                 backgroundColor: [
                     '#36A2EB',
                     '#FF6384',
