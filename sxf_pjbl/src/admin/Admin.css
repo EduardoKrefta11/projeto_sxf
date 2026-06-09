@@ -5,14 +5,8 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-
-    background: linear-gradient(
-        to bottom,
-        #ffffff 0%,
-        #ffffff 75%,
-        #c8e6c9 92%,
-        #81c784 100%
-    );
+    background: linear-gradient(180deg, #cceae8 0%, #539091 100%);
+    font-family: Arial, sans-serif;
 }
 
 .adminHeader {
@@ -21,30 +15,37 @@
     padding: 20px;
     display: flex;
     gap: 15px;
-    background-color: #81c784;
+    justify-content: center;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(168, 220, 217, 0.6);
+    border-radius: 24px;
     box-sizing: border-box;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
 }
 
 .adminMenuButton {
-    background-color: white;
-    border: 2px solid #2e7d32;
-    color: black;
-    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(168, 220, 217, 0.85);
+    color: #2d5150;
+    padding: 14px 22px;
     font-size: 16px;
-    font-weight: bold;
-    border-radius: 8px;
+    font-weight: 700;
+    border-radius: 18px;
     cursor: pointer;
-    transition: 0.2s;
+    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 }
 
 .adminMenuButton:hover {
-    background-color: #e8f5e9;
+    background: rgba(168, 220, 217, 0.28);
+    transform: translateY(-1px);
+    border-color: #a8dcd9;
 }
 
 .adminMenuButton.active {
-    background-color: #2e7d32;
+    background: #a8dcd9;
     color: white;
+    border-color: #a8dcd9;
 }
 
 .adminMain {
@@ -52,24 +53,28 @@
     padding: 30px;
     flex-grow: 1;
     box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
 }
 
 .adminContent {
-    background-color: white;
     width: 100%;
-    padding: 25px;
-    border-radius: 15px;
-    border: 1px solid #a5d6a7;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    max-width: 1200px;
+    padding: 32px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 30px;
+    border: 1px solid rgba(168, 220, 217, 0.6);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
     box-sizing: border-box;
 }
 
 .adminTitle {
     font-size: 32px;
-    color: black;
+    color: #2d5050;
     margin-bottom: 25px;
     padding-bottom: 10px;
-    border-bottom: 3px solid #4caf50;
+    border-bottom: 3px solid #a8dcd9;
 }
 
 /* Listas Gerais */
@@ -83,22 +88,23 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: white;
-    border: 2px solid #81c784;
-    border-radius: 12px;
-    padding: 20px;
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(168, 220, 217, 0.5);
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
 }
 
 .userInfo h3, .pacienteInfo h3, .sintomaInfo h3, .consultaInfo h3 {
     margin-bottom: 8px;
     font-size: 24px;
-    color: black;
+    color: #275a58;
 }
 
 .userInfo p, .pacienteInfo p, .sintomaInfo p, .consultaInfo p {
     margin: 5px 0;
     font-size: 18px;
-    color: #333;
+    color: #4f6c6b;
 }
 
 .userActions, .pacienteActions, .sintomaActions, .consultaActions {
@@ -108,32 +114,53 @@
 
 /* Botões */
 .btnAdd {
-    background-color: #e8f5e9;
-    border: 2px solid #2e7d32;
-    padding: 12px 24px;
-    border-radius: 8px;
+    background: rgba(232, 245, 233, 0.95);
+    border: 1px solid rgba(168, 220, 217, 0.9);
+    padding: 14px 26px;
+    border-radius: 18px;
     cursor: pointer;
     font-weight: bold;
     margin-bottom: 20px;
     font-size: 18px;
+    color: #2d5150;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.btnAdd:hover {
+    transform: translateY(-1px);
+    background: rgba(168, 220, 217, 0.28);
 }
 
 .btnEdit {
-    background-color: #fff9c4;
-    border: 2px solid #fbc02d;
+    background: rgba(255, 249, 196, 0.95);
+    border: 1px solid #fbc02d;
     padding: 12px 24px;
-    border-radius: 8px;
+    border-radius: 14px;
     cursor: pointer;
     font-weight: bold;
+    color: #2d5150;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.btnEdit:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 249, 196, 1);
 }
 
 .btnDelete {
-    background-color: #ffcdd2;
-    border: 2px solid #e53935;
+    background: rgba(255, 205, 210, 0.95);
+    border: 1px solid #e53935;
     padding: 12px 24px;
-    border-radius: 8px;
+    border-radius: 14px;
     cursor: pointer;
     font-weight: bold;
+    color: #2d5150;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.btnDelete:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 205, 210, 1);
 }
 
 /* Aba de Consultas Específico */
@@ -177,16 +204,17 @@
     display: flex;
     flex-direction: column;
     gap: 15px;
-    background-color: #f1f8e9;
-    padding: 25px;
-    border-radius: 12px;
-    border: 2px solid #81c784;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 38px;
+    border-radius: 30px;
+    border: 1px solid rgba(168, 220, 217, 0.6);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
     margin-bottom: 30px;
 }
 
 .formCadastro h2 {
     margin-bottom: 15px;
-    color: #2e7d32;
+    color: #23544f;
     font-size: 28px;
 }
 
@@ -199,21 +227,23 @@
 .formGroup label {
     font-size: 18px;
     font-weight: bold;
-    color: black;
+    color: #2d5150;
 }
 
 .formGroup input, .formGroup select, .formGroup textarea {
-    padding: 12px;
+    padding: 14px 16px;
     font-size: 18px;
-    border: 2px solid #a5d6a7;
-    border-radius: 8px;
+    border: 1px solid rgba(61, 134, 138, 0.35);
+    border-radius: 14px;
     outline: none;
-    color: black;
-    background-color: white;
+    color: #2f4f4f;
+    background: rgba(255, 255, 255, 0.9);
 }
 
-.formGroup input:focus {
-    border-color: #2e7d32;
+.formGroup input:focus,
+.formGroup select:focus {
+    border-color: #a8dcd9;
+    box-shadow: 0 0 0 4px rgba(168, 220, 217, 0.25);
 }
 
 .formActions {
@@ -223,32 +253,45 @@
 }
 
 .btnSave {
-    background-color: #2e7d32;
-    color: white;
+    background: #a8dcd9;
+    color: #ffffff;
     border: none;
     padding: 15px 30px;
-    border-radius: 8px;
+    border-radius: 14px;
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
+    box-shadow: 0 12px 24px rgba(168, 220, 217, 0.35);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.btnSave:hover {
+    transform: translateY(-1px);
+    background: #8cc8c1;
 }
 
 .btnCancel {
-    background-color: #f5f5f5;
-    border: 2px solid #ccc;
+    background: rgba(245, 245, 245, 0.95);
+    border: 1px solid rgba(168, 220, 217, 0.6);
     padding: 15px 30px;
-    border-radius: 8px;
+    border-radius: 14px;
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
-    color: black;
+    color: #2d5150;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.btnCancel:hover {
+    transform: translateY(-1px);
+    background: rgba(168, 220, 217, 0.18);
 }
 
 .errorMsg {
-    color: black;
+    color: #2d5050;
     background-color: #ffcdd2;
-    border: 2px solid #e53935;
-    border-radius: 8px;
+    border: 1px solid #e53935;
+    border-radius: 16px;
     padding: 20px;
     margin-bottom: 20px;
     font-weight: bold;
