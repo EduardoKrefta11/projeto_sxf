@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js'
-import { Chart, Bar, Line, Pie } from 'react-chartjs-2'
+import { Bar, Line, Pie } from 'react-chartjs-2'
 import defaultPFP from '../assets/default.png' // NOTA: ADICIONAR defaultPFP em foto de Perfil do usuário e do paciente 
 import './Menu.css'
 
@@ -53,8 +53,10 @@ function Menu() {
     const [nascimentoMin, setNascimentoMin] = useState('')
     const [nascimentoMax, setNascimentoMax] = useState('')
 
-    const [statsData, setStatsData] = useState<{labels: string[], valores: number[]} | null>(null)
-    const [loadingStats, setLoadingStats] = useState(false)
+    const [dadosEstatisticos, setDadosEstatisticos] = useState<{labels: string[], valores: number[]} | null>(null)
+    const [carregandoEstatisticas, setCarregandoEstatisticas] = useState(false)
+    const [filtrosAplicados, setFiltrosAplicados] = useState(false)
+    const graficoRef = useRef<any>(null)
 
     useEffect(() => {
         if (pagina === 'home') {
@@ -91,53 +93,54 @@ function Menu() {
                 })
                 .then((data) => setSintomasBuscados(data))
                 .catch(() => setErro('Erro ao buscar sintomas'))
+
+            setFiltrosAplicados(false)
+            setDadosEstatisticos(null)
         }
     }, [pagina])
 
-    useEffect(() => {
-        if (pagina === 'estatisticas') {
-            carregarEstatisticas()
+    const montarParametrosEstatisticas = (opcoes?: { incluirTipoGrafico?: boolean }) => {
+        const parametros = new URLSearchParams()
+        const incluirTipoGrafico = opcoes?.incluirTipoGrafico ?? false
+
+        if (sexo) {
+            parametros.append('sexo', sexo)
         }
-    }, [pagina,
-        sexo,
-        nascimentoMin,
-        nascimentoMax,
-        sintoma,
-        pontuacaoMin,
-        pontuacaoMax]
-    )
+
+        if (nascimentoMin) {
+            parametros.append('nascimentoMin', nascimentoMin)
+        }
+
+        if (nascimentoMax) {
+            parametros.append('nascimentoMax', nascimentoMax)
+        }
+
+        if (sintoma) {
+            parametros.append('sintoma', sintoma)
+        }
+
+        if (pontuacaoMin) {
+            parametros.append('pontuacaoMin', pontuacaoMin)
+        }
+
+        if (pontuacaoMax) {
+            parametros.append('pontuacaoMax', pontuacaoMax)
+        }
+
+        if (incluirTipoGrafico) {
+            parametros.append('tipoGrafico', tipoGrafico)
+        }
+
+        return parametros
+    }
 
     const carregarEstatisticas = () => {
+            setCarregandoEstatisticas(true)
+            setErro('')
 
-            setLoadingStats(true)
+            const parametros = montarParametrosEstatisticas()
 
-            const params = new URLSearchParams()
-
-            if (sexo) {
-                params.append('sexo', sexo)
-            }
-
-            if (nascimentoMin) {
-                params.append('nascimentoMin', nascimentoMin)
-            }
-
-            if (nascimentoMax) {
-                params.append('nascimentoMax', nascimentoMax)
-            }
-
-            if (sintoma) {
-                params.append('sintoma', sintoma)
-            }
-
-            if (pontuacaoMin) {
-                params.append('pontuacaoMin', pontuacaoMin)
-            }
-
-            if (pontuacaoMax) {
-                params.append('pontuacaoMax', pontuacaoMax)
-            }
-
-            fetch(`/api/stats?${params.toString()}`, {
+            fetch(`/api/stats?${parametros.toString()}`, {
                 credentials: 'include'
             })
             .then((res) => {
@@ -145,10 +148,73 @@ function Menu() {
                 return res.json()
             })
             .then((data) => {
-                setStatsData(data)
+                setDadosEstatisticos(data)
             })
             .catch(() => setErro('Erro ao buscar estatísticas'))
-            .finally(() => setLoadingStats(false))
+            .finally(() => setCarregandoEstatisticas(false))
+    }
+
+    const aplicarFiltros = () => {
+        setFiltrosAplicados(true)
+        setDadosEstatisticos(null)
+        carregarEstatisticas()
+    }
+
+    const obterImagemGrafico = () => {
+        const chart = graficoRef.current
+
+        if (!chart) {
+            return null
+        }
+
+        if (typeof chart.toBase64Image === 'function') {
+            return chart.toBase64Image()
+        }
+
+        return null
+    }
+
+    const gerarRelatorioEstatistico = async () => {
+        const imagemGraficoBase64 = obterImagemGrafico()
+
+        const body = {
+            sexo,
+            nascimentoMin,
+            nascimentoMax,
+            sintoma,
+            pontuacaoMin,
+            pontuacaoMax,
+            tipoGrafico,
+            imagemGraficoBase64
+        }
+
+        try {
+            const res = await fetch('/api/pdf/stats', {
+                method: 'POST',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            })
+
+            if (!res.ok) {
+                throw new Error('Erro ao gerar PDF')
+            }
+
+            const blob = await res.blob()
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement('a')
+            link.href = url
+            link.download = 'Relatorio_estatisticas.pdf'
+            document.body.appendChild(link)
+            link.click()
+            link.remove()
+            URL.revokeObjectURL(url)
+        } catch (error) {
+            console.error('Erro ao gerar PDF estatístico:', error)
+            setErro('Erro ao gerar PDF estatístico')
+        }
     }
 
     const logout = async () => {
@@ -164,26 +230,13 @@ function Menu() {
     }
 
     const obterGrafico = () => {
-        console.log("ANTES DO CHART:", statsData)
-        console.log(
-            "LABELS",
-            statsData?.labels,
-            statsData?.labels?.length
-        )
-
-        console.log(
-            "VALORES",
-            statsData?.valores,
-            statsData?.valores?.length
-        )
-
-        if (!statsData) return null
+        if (!dadosEstatisticos) return null
 
         const chartConfig = {
-            labels: [...statsData.labels],
+            labels: [...dadosEstatisticos.labels],
             datasets: [{
                 label: 'Quantidade',
-                data: [...statsData.valores],
+                data: [...dadosEstatisticos.valores],
                 backgroundColor: [
                     '#36A2EB',
                     '#FF6384',
@@ -215,13 +268,13 @@ function Menu() {
 
         switch(tipoGrafico) {
             case 'colunas':
-                return <Bar data={chartConfig} options={opcoes} />
+                return <Bar ref={graficoRef} data={chartConfig} options={opcoes} />
             case 'linhas':
-                return <Line data={chartConfig} options={opcoes} />
+                return <Line ref={graficoRef} data={chartConfig} options={opcoes} />
             case 'pizza':
-                return <Pie data={chartConfig} options={opcoes} />
+                return <Pie ref={graficoRef} data={chartConfig} options={opcoes} />
             case 'barras':
-                return (<Bar data={chartConfig} options={{...opcoes, indexAxis: 'y' as const}}/>)
+                return (<Bar ref={graficoRef} data={chartConfig} options={{...opcoes, indexAxis: 'y' as const}}/>)
             default:
                 return null
         }
@@ -335,7 +388,7 @@ function Menu() {
 
                                     <select
                                         value={sexo}
-                                        onChange={(e) => setSexo(e.target.value)}
+                                        onChange={(e) => { setSexo(e.target.value); setFiltrosAplicados(false) }}
                                     >
                                         <option value="">Todos</option>
                                         <option value="Masculino">Masculino</option>
@@ -350,7 +403,7 @@ function Menu() {
                                     <input
                                         type="date"
                                         value={nascimentoMin}
-                                        onChange={(e) => setNascimentoMin(e.target.value)}
+                                        onChange={(e) => { setNascimentoMin(e.target.value); setFiltrosAplicados(false) }}
                                     />
                                 </div>
 
@@ -360,7 +413,7 @@ function Menu() {
                                     <input
                                         type="date"
                                         value={nascimentoMax}
-                                        onChange={(e) => setNascimentoMax(e.target.value)}
+                                        onChange={(e) => { setNascimentoMax(e.target.value); setFiltrosAplicados(false) }}
                                     />
                                 </div>
 
@@ -369,7 +422,7 @@ function Menu() {
 
                                     <select
                                         value={sintoma}
-                                        onChange={(e) => setSintoma(e.target.value)}
+                                        onChange={(e) => { setSintoma(e.target.value); setFiltrosAplicados(false) }}
                                     >
                                         <option value="">Todos</option>
 
@@ -387,7 +440,7 @@ function Menu() {
                                     <input
                                         type="number"
                                         value={pontuacaoMin}
-                                        onChange={(e) => setPontuacaoMin(e.target.value)}
+                                        onChange={(e) => { setPontuacaoMin(e.target.value); setFiltrosAplicados(false) }}
                                     />
                                 </div>
 
@@ -397,20 +450,24 @@ function Menu() {
                                     <input
                                         type="number"
                                         value={pontuacaoMax}
-                                        onChange={(e) => setPontuacaoMax(e.target.value)}
+                                        onChange={(e) => { setPontuacaoMax(e.target.value); setFiltrosAplicados(false) }}
                                     />
                                 </div>
 
                                 <div className="controlGroup">
                                 <label>Tipo de gráfico:</label>
                                 <div className="buttonGroup">
-                                    <button className={tipoGrafico === 'colunas' ? 'active' : ''} onClick={() => setTipoGrafico('colunas')}>Colunas</button>
+                                                <button className={tipoGrafico === 'colunas' ? 'active' : ''} onClick={() => setTipoGrafico('colunas')}>Colunas</button>
                                     <button className={tipoGrafico === 'linhas' ? 'active' : ''} onClick={() => setTipoGrafico('linhas')}>Linhas</button>
                                     <button className={tipoGrafico === 'pizza' ? 'active' : ''} onClick={() => setTipoGrafico('pizza')}>Pizza</button>
                                     <button className={tipoGrafico === 'barras' ? 'active' : ''} onClick={() => setTipoGrafico('barras')}>Barras</button>
                                 </div>
 
-                                <button className="pdfStatsButton" onClick={() => window.open(`/api/pdf/stats`, '_blank')}>
+                                <button className="applyFiltersButton" onClick={aplicarFiltros}>
+                                    Aplicar Filtros
+                                </button>
+
+                                <button className="pdfStatsButton" onClick={gerarRelatorioEstatistico}>
                                     Gerar PDF Estatístico
                                 </button>
 
@@ -418,14 +475,18 @@ function Menu() {
 
                         </div>
 
-                        {loadingStats ? (
+                        {carregandoEstatisticas ? (
                             <p>Carregando estatísticas...</p>
-                        ) : statsData && statsData.labels.length > 0 ? (
-                            <div className="chartContainer">
-                                {obterGrafico()}
-                            </div>
+                        ) : filtrosAplicados ? (
+                            dadosEstatisticos && dadosEstatisticos.labels.length > 0 ? (
+                                <div className="chartContainer">
+                                    {obterGrafico()}
+                                </div>
+                            ) : (
+                                <p>Nenhum dado disponível para exibir.</p>
+                            )
                         ) : (
-                            <p>Nenhum dado disponível para exibir.</p>
+                            <p>Defina os filtros e clique em "Aplicar Filtros" para gerar o gráfico.</p>
                         )}
                     </div>
                 )}

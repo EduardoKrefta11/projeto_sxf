@@ -1,23 +1,34 @@
 from flask import jsonify, session, request, send_file
 from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
+from reportlab.pdfgen import canvas
 from io import BytesIO
 import os
-from db import query_db, execute_db
+import textwrap
+import base64
+from db import query_db
 
-def montar_filtros(user_id):
+def montar_filtros(user_id, dados=None):
+
+    if dados is None:
+        dados = {}
 
     filtros = ["p.idPesquisador = %s"]
     parametros = [user_id]
 
-    sexo = request.args.get("sexo")
+    def obter_param(nome):
+        valor = dados.get(nome)
+        if valor is None or valor == "":
+            valor = request.args.get(nome)
+        return valor
+
+    sexo = obter_param("sexo")
 
     if sexo:
         filtros.append("p.sexo = %s")
         parametros.append(sexo)
 
-    nascimento_min = request.args.get("nascimentoMin")
+    nascimento_min = obter_param("nascimentoMin")
 
     if nascimento_min:
         filtros.append("p.dataNascimento >= %s")
@@ -414,11 +425,216 @@ def register_menu_routes(app):
             "valores": [float(item["valor"]) for item in stats]
         })
 
-    @app.route('/api/pdf/stats', methods=['GET'])
-    def gerar_pdf_stats():
+    @app.route('/api/pdf/stats', methods=['GET', 'POST'])
+    def gerarPdfEstatisticas():
         user_id = session.get('user_id')
 
         if not user_id:
             return jsonify({"error": "Não autorizado"}), 401
 
-        organizacao = request.args.get('organizacao', 'genero')
+        dados_json = request.get_json(silent=True) or {}
+        organizacao = dados_json.get('organizacao', request.args.get('organizacao', 'genero'))
+        tipoGrafico = dados_json.get('tipoGrafico', request.args.get('tipoGrafico', 'colunas'))
+
+        filtros, parametros = montar_filtros(user_id, dados_json)
+        where_clause = " AND ".join(filtros)
+
+        if organizacao == 'genero':
+            query = f"""
+                SELECT
+                    p.sexo as label,
+                    COUNT(DISTINCT p.id) as valor
+                FROM paciente p
+                LEFT JOIN consulta c
+                    ON c.idPaciente = p.id
+
+                LEFT JOIN consultaSintoma cs
+                    ON cs.idConsulta = c.id
+
+                LEFT JOIN sintoma s
+                    ON s.id = cs.idSintoma
+                WHERE {where_clause}
+                GROUP BY p.sexo
+            """
+
+        elif organizacao == 'data':
+            query = f"""
+                SELECT
+                    DATE(c.dataHora) as label,
+                    COUNT(DISTINCT p.id) as valor
+                FROM consulta c
+                INNER JOIN paciente p
+                    ON c.idPaciente = p.id
+                LEFT JOIN consultaSintoma cs
+                    ON cs.idConsulta = c.id
+                LEFT JOIN sintoma s
+                    ON s.id = cs.idSintoma
+                WHERE {where_clause}
+                GROUP BY DATE(c.dataHora)
+                ORDER BY label
+            """
+
+        elif organizacao == 'sintoma':
+            query = f"""
+                SELECT
+                    s.nome as label,
+                    COUNT(*) as valor
+                FROM consultaSintoma cs
+                INNER JOIN sintoma s
+                    ON cs.idSintoma = s.id
+                INNER JOIN consulta c
+                    ON cs.idConsulta = c.id
+                INNER JOIN paciente p
+                    ON c.idPaciente = p.id
+                WHERE {where_clause}
+                GROUP BY s.id, s.nome
+            """
+
+        elif organizacao == 'peso':
+            query = f"""
+                SELECT
+                    s.nome as label,
+
+                    AVG(
+                        CASE
+                            WHEN p.sexo = 'Masculino'
+                                THEN s.pesoMasculino
+                            WHEN p.sexo = 'Feminino'
+                                THEN s.pesoFeminino
+                        END
+                    ) as valor
+
+                FROM consultaSintoma cs
+
+                INNER JOIN sintoma s
+                    ON cs.idSintoma = s.id
+
+                INNER JOIN consulta c
+                    ON cs.idConsulta = c.id
+
+                INNER JOIN paciente p
+                    ON c.idPaciente = p.id
+
+                WHERE {where_clause}
+
+                GROUP BY s.id, s.nome
+            """
+
+        else:
+            return jsonify({"error": "Organização inválida"}), 400
+
+        dadosEstatisticos = query_db(query, tuple(parametros))
+
+        if dadosEstatisticos is None:
+            return jsonify({"error": "Erro ao buscar dados"}), 500
+
+        buffer = BytesIO()
+        pdf = canvas.Canvas(buffer, pagesize=A4)
+
+        logo_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "sxf_pjbl",
+            "src",
+            "assets",
+            "buko_kaesemodel.webp"
+        )
+
+        pdf.drawImage(
+            logo_path,
+            150,
+            730,
+            width=300,
+            height=110,
+            mask='auto'
+        )
+
+        pdf.line(50, 715, 550, 715)
+
+        pdf.setFont("Helvetica-Bold", 16)
+        pdf.drawCentredString(
+            300,
+            690,
+            f"RELATÓRIO ESTATÍSTICO"
+        )
+
+        pdf.line(50, 670, 550, 670)
+
+        y = 650
+        pdf.setFont("Helvetica", 12)
+
+        def wrap_text(start_y, text, max_chars=70, line_height=16):
+            for line in textwrap.wrap(text, width=max_chars):
+                pdf.drawString(50, start_y, line)
+                start_y -= line_height
+            return start_y
+
+        filtrosAplicados = []
+        if request.args.get('sexo'):
+            filtrosAplicados.append(f"Sexo: {request.args.get('sexo')}")
+        if request.args.get('nascimentoMin'):
+            filtrosAplicados.append(f"Nascimento mínimo: {request.args.get('nascimentoMin')}")
+        if request.args.get('nascimentoMax'):
+            filtrosAplicados.append(f"Nascimento máximo: {request.args.get('nascimentoMax')}")
+        if request.args.get('sintoma'):
+            filtrosAplicados.append(f"Sintoma: {request.args.get('sintoma')}")
+        if request.args.get('pontuacaoMin'):
+            filtrosAplicados.append(f"Pontuação mínima: {request.args.get('pontuacaoMin')}")
+        if request.args.get('pontuacaoMax'):
+            filtrosAplicados.append(f"Pontuação máxima: {request.args.get('pontuacaoMax')}")
+
+        filtrosTexto = "; ".join(filtrosAplicados) if filtrosAplicados else "Nenhum filtro aplicado"
+
+        y = wrap_text(y, f"Tipo de gráfico: {tipoGrafico}")
+        y -= 8
+        y = wrap_text(y, f"Filtros aplicados: {filtrosTexto}")
+        y -= 20
+
+        imagem_grafico_base64 = dados_json.get('imagemGraficoBase64')
+        if imagem_grafico_base64:
+            if ',' in imagem_grafico_base64:
+                imagem_grafico_base64 = imagem_grafico_base64.split(',', 1)[1]
+            try:
+                imagem_bytes = base64.b64decode(imagem_grafico_base64)
+                imagem = ImageReader(BytesIO(imagem_bytes))
+                if y < 280:
+                    pdf.showPage()
+                    y = 800
+                pdf.setFont("Helvetica-Bold", 14)
+                pdf.drawString(50, y, "Gráfico")
+                y -= 20
+                pdf.drawImage(imagem, 50, y - 240, width=500, height=240, preserveAspectRatio=True, mask='auto')
+                y -= 260
+            except Exception:
+                pdf.setFont("Helvetica-Italic", 12)
+                pdf.drawString(50, y, "Não foi possível incluir a imagem do gráfico.")
+                y -= 20
+
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(50, y, "Dados do gráfico")
+        y -= 24
+        pdf.setFont("Helvetica", 12)
+
+        if not dadosEstatisticos:
+            pdf.drawString(50, y, "Nenhum dado disponível para os filtros selecionados.")
+        else:
+            for item in dadosEstatisticos:
+                label = item.get('label') or 'Sem rótulo'
+                valor = item.get('valor')
+                y = wrap_text(y, f"{label}: {valor}")
+                y -= 10
+
+                if y < 100:
+                    pdf.showPage()
+                    y = 800
+                    pdf.setFont("Helvetica", 12)
+
+        pdf.save()
+        buffer.seek(0)
+
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=f"Relatorio_estatisticas.pdf",
+            mimetype="application/pdf"
+        )

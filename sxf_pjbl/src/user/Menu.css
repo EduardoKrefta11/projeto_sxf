@@ -254,7 +254,8 @@
 }
 
 .pdfButton,
-.pdfStatsButton {
+.pdfStatsButton,
+.applyFiltersButton {
 	padding: 12px 22px;
 	border: none;
 	border-radius: 14px;
@@ -266,7 +267,8 @@
 }
 
 .pdfButton:hover,
-.pdfStatsButton:hover {
+.pdfStatsButton:hover,
+.applyFiltersButton:hover {
 	background: #8cc8c1;
 	transform: translateY(-1px);
 	box-shadow: 0 12px 22px rgba(0, 0, 0, 0.08);
