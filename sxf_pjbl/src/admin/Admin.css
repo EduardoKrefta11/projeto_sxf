@@ -5,8 +5,14 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(180deg, #cceae8 0%, #539091 100%);
-    font-family: Arial, sans-serif;
+
+    background: linear-gradient(
+        to bottom,
+        #ffffff 0%,
+        #ffffff 75%,
+        #c8e6c9 92%,
+        #81c784 100%
+    );
 }
 
 .adminHeader {
@@ -15,36 +21,30 @@
     padding: 20px;
     display: flex;
     gap: 15px;
-    justify-content: center;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.95);
-    border-bottom: 1px solid rgba(168, 220, 217, 0.6);
+    background-color: #81c784;
     box-sizing: border-box;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 .adminMenuButton {
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgba(168, 220, 217, 0.85);
-    color: #2d5150;
-    padding: 14px 22px;
+    background-color: white;
+    border: 2px solid #2e7d32;
+    color: black;
+    padding: 10px 20px;
     font-size: 16px;
     font-weight: bold;
-    border-radius: 18px;
+    border-radius: 8px;
     cursor: pointer;
-    transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    transition: 0.2s;
 }
 
 .adminMenuButton:hover {
-    background: rgba(168, 220, 217, 0.28);
-    transform: translateY(-1px);
-    border-color: #a8dcd9;
+    background-color: #e8f5e9;
 }
 
 .adminMenuButton.active {
-    background: #a8dcd9;
+    background-color: #2e7d32;
     color: white;
-    border-color: #a8dcd9;
 }
 
 .adminMain {
@@ -52,161 +52,141 @@
     padding: 30px;
     flex-grow: 1;
     box-sizing: border-box;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
 }
 
 .adminContent {
+    background-color: white;
     width: 100%;
-    max-width: 1200px;
-    padding: 32px;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 30px;
-    border: 1px solid rgba(168, 220, 217, 0.6);
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+    padding: 25px;
+    border-radius: 15px;
+    border: 1px solid #a5d6a7;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
     box-sizing: border-box;
 }
 
 .adminTitle {
     font-size: 32px;
-    color: #2d5050;
+    color: black;
     margin-bottom: 25px;
     padding-bottom: 10px;
-    border-bottom: 3px solid #a8dcd9;
+    border-bottom: 3px solid #4caf50;
 }
 
-.userList, .pacienteList, .sintomaList {
+/* Listas Gerais */
+.userList, .pacienteList, .sintomaList, .consultaList {
     display: flex;
     flex-direction: column;
     gap: 20px;
 }
 
-.userCard, .pacienteCard, .sintomaCard {
+.userCard, .pacienteCard, .sintomaCard, .consultaCard {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(168, 220, 217, 0.5);
-    border-radius: 20px;
-    padding: 18px;
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+    background-color: white;
+    border: 2px solid #81c784;
+    border-radius: 12px;
+    padding: 20px;
 }
 
-.userInfo h3, .pacienteInfo h3, .sintomaInfo h3 {
+.userInfo h3, .pacienteInfo h3, .sintomaInfo h3, .consultaInfo h3 {
     margin-bottom: 8px;
     font-size: 24px;
-    color: #275a58;
+    color: black;
 }
 
-.userInfo p, .pacienteInfo p, .sintomaInfo p {
+.userInfo p, .pacienteInfo p, .sintomaInfo p, .consultaInfo p {
     margin: 5px 0;
     font-size: 18px;
-    color: #4f6c6b;
+    color: #333;
 }
 
-.pesosContainer {
-    display: flex;
-    gap: 20px;
-    margin-top: 10px;
-}
-
-.pesoItem {
-    background-color: #f1f8e9;
-    padding: 10px 15px;
-    border-radius: 12px;
-    border: 1px solid #a5d6a7;
-    font-weight: bold;
-    color: #2d5150;
-}
-
-.userActions, .pacienteActions, .sintomaActions {
+.userActions, .pacienteActions, .sintomaActions, .consultaActions {
     display: flex;
     gap: 15px;
 }
 
-.btnEdit {
-    background: rgba(255, 249, 196, 0.95);
-    border: 1px solid #fbc02d;
-    padding: 12px 24px;
-    border-radius: 14px;
-    cursor: pointer;
-    font-weight: bold;
-    color: #2d5150;
-    transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.btnEdit:hover {
-    transform: translateY(-1px);
-    background: rgba(255, 249, 196, 1);
-}
-
-.btnDelete {
-    background: rgba(255, 205, 210, 0.95);
-    border: 1px solid #e53935;
-    padding: 12px 24px;
-    border-radius: 14px;
-    cursor: pointer;
-    font-weight: bold;
-    color: #2d5150;
-    transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.btnDelete:hover {
-    transform: translateY(-1px);
-    background: rgba(255, 205, 210, 1);
-}
-
+/* Botões */
 .btnAdd {
-    background: rgba(232, 245, 233, 0.95);
-    border: 1px solid rgba(168, 220, 217, 0.9);
-    padding: 14px 26px;
-    border-radius: 18px;
+    background-color: #e8f5e9;
+    border: 2px solid #2e7d32;
+    padding: 12px 24px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
     margin-bottom: 20px;
     font-size: 18px;
-    color: #2d5150;
-    transition: transform 0.2s ease, background 0.2s ease;
 }
 
-.btnAdd:hover {
-    transform: translateY(-1px);
-    background: rgba(168, 220, 217, 0.28);
-}
-
-.errorMsg {
-    color: #2d5150;
-    background-color: #ffcdd2;
-    border: 1px solid #e53935;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 20px;
+.btnEdit {
+    background-color: #fff9c4;
+    border: 2px solid #fbc02d;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
     font-weight: bold;
 }
 
-.emptyMsg {
-    text-align: center;
-    font-size: 22px;
-    margin-top: 60px;
-    color: #444;
+.btnDelete {
+    background-color: #ffcdd2;
+    border: 2px solid #e53935;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
 }
 
+/* Aba de Consultas Específico */
+.consultaCard {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.consultaHeader {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.pontuacaoBadge {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 20px;
+    border: 1px solid #2e7d32;
+}
+
+.sintomasList {
+    margin-top: 10px;
+    font-style: italic;
+    color: #555;
+    background-color: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Formulários */
 .formCadastro {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    background: rgba(255, 255, 255, 0.95);
-    padding: 38px;
-    border-radius: 30px;
-    border: 1px solid rgba(168, 220, 217, 0.6);
-    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.12);
+    background-color: #f1f8e9;
+    padding: 25px;
+    border-radius: 12px;
+    border: 2px solid #81c784;
     margin-bottom: 30px;
 }
 
 .formCadastro h2 {
     margin-bottom: 15px;
-    color: #23544f;
+    color: #2e7d32;
     font-size: 28px;
 }
 
@@ -219,23 +199,21 @@
 .formGroup label {
     font-size: 18px;
     font-weight: bold;
-    color: #2d5150;
+    color: black;
 }
 
-.formGroup input, .formGroup select {
-    padding: 14px 16px;
+.formGroup input, .formGroup select, .formGroup textarea {
+    padding: 12px;
     font-size: 18px;
-    border: 1px solid rgba(61, 134, 138, 0.35);
-    border-radius: 14px;
+    border: 2px solid #a5d6a7;
+    border-radius: 8px;
     outline: none;
-    color: #2f4f4f;
-    background: rgba(255, 255, 255, 0.9);
+    color: black;
+    background-color: white;
 }
 
-.formGroup input:focus,
-.formGroup select:focus {
-    border-color: #a8dcd9;
-    box-shadow: 0 0 0 4px rgba(168, 220, 217, 0.25);
+.formGroup input:focus {
+    border-color: #2e7d32;
 }
 
 .formActions {
@@ -245,36 +223,40 @@
 }
 
 .btnSave {
-    background: #a8dcd9;
-    color: #ffffff;
+    background-color: #2e7d32;
+    color: white;
     border: none;
     padding: 15px 30px;
-    border-radius: 14px;
+    border-radius: 8px;
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
-    box-shadow: 0 12px 24px rgba(168, 220, 217, 0.35);
-    transition: transform 0.2s ease, background 0.2s ease;
-}
-
-.btnSave:hover {
-    transform: translateY(-1px);
-    background: #8cc8c1;
 }
 
 .btnCancel {
-    background: rgba(245, 245, 245, 0.95);
-    border: 1px solid rgba(168, 220, 217, 0.6);
+    background-color: #f5f5f5;
+    border: 2px solid #ccc;
     padding: 15px 30px;
-    border-radius: 14px;
+    border-radius: 8px;
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
-    color: #2d5150;
-    transition: transform 0.2s ease, background 0.2s ease;
+    color: black;
 }
 
-.btnCancel:hover {
-    transform: translateY(-1px);
-    background: rgba(168, 220, 217, 0.18);
+.errorMsg {
+    color: black;
+    background-color: #ffcdd2;
+    border: 2px solid #e53935;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+.emptyMsg {
+    text-align: center;
+    font-size: 22px;
+    margin-top: 60px;
+    color: #444;
 }
