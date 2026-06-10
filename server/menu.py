@@ -1,4 +1,4 @@
-from flask import jsonify, session, request, send_file
+from flask import jsonify, session, request, send_file, send_from_directory
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
@@ -6,7 +6,8 @@ from io import BytesIO
 import os
 import textwrap
 import base64
-from db import query_db
+from werkzeug.utils import secure_filename
+from db import query_db, execute_db
 
 def montar_filtros(user_id, dados=None):
 
@@ -76,12 +77,81 @@ def register_menu_routes(app):
             return jsonify({"error" : "Erro na busca do usuário"}), 404
 
         return jsonify(perfil)
+    
+    @app.route('/api/user_pfp', methods=['POST'])
+    def atualizarPfp():
 
-    @app.route('/api/meus_pacientes', methods=['GET'])
-    def buscar_pacientes():
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error" : "Não autorizado"}), 401
+        
+        if 'foto' not in request.files:
+            return jsonify({"error": "Nenhum arquivo enviado"}), 400
+
+        arquivo = request.files['foto']
+
+        if arquivo.filename == '':
+            return jsonify({"error": "Arquivo inválido"}), 400
+
+        extensao = arquivo.filename.rsplit('.', 1)[1].lower()
+
+        nome_arquivo = f"user_{user_id}.{extensao}"
+
+        pasta_upload = os.path.join('uploads', 'perfis')
+
+        os.makedirs(pasta_upload, exist_ok=True)
+
+        caminho_fisico = os.path.join(
+            pasta_upload,
+            secure_filename(nome_arquivo)
+        )
+
+        arquivo.save(caminho_fisico)
+
+        caminho_banco = f"/uploads/perfis/{nome_arquivo}"
+
+        execute_db(
+            """
+            UPDATE usuario
+            SET fotoPerfil = %s
+            WHERE id = %s
+            """,
+            (caminho_banco, user_id)
+        )
+
+        return jsonify({
+            "message": "Foto enviada com sucesso",
+            "fotoPerfil": caminho_banco
+        })
+    
+    @app.route('/uploads/perfis/<filename>')
+    def servir_pfp(filename):
+        return send_from_directory(
+            'uploads/perfis',
+            filename
+        )
+
+    @app.route('/api/meus_pacientes', methods=['GET', 'POST'])
+    def meus_pacientes():
         user_id = session.get('user_id')
         if not user_id:
             return jsonify({"error": "Não autorizado"}), 401
+
+        if request.method == 'POST':
+            data = request.get_json() or {}
+            nome = data.get('nome')
+            cpf = data.get('cpf')
+            sexo = data.get('sexo')
+            data_nascimento = data.get('dataNascimento')
+
+            if not nome or not cpf or not sexo or not data_nascimento:
+                return jsonify({"error": "Dados incompletos"}), 400
+
+            execute_db(
+                "INSERT INTO paciente (nome, cpf, sexo, dataNascimento, idPesquisador, idCriador) VALUES (%s, %s, %s, %s, %s, %s)",
+                (nome, cpf, sexo, data_nascimento, user_id, user_id)
+            )
+            return jsonify({"success": True}), 201
 
         pacientes = query_db(
             "SELECT id, nome, sexo, dataNascimento, ultimoTeste, dataCriacao, fotoPerfil FROM paciente WHERE idPesquisador = %s",

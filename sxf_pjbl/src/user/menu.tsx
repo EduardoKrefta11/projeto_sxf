@@ -20,8 +20,25 @@ function Menu() {
     const navigate = useNavigate()
     const [pagina, setPagina] = useState('home')
     const [pacientes, setPacientes] = useState<any[]>([])
+    const [mostrarFormPaciente, setMostrarFormPaciente] = useState(false)
+    const [novoPaciente, setNovoPaciente] = useState({ nome: '', cpf: '', sexo: 'Masculino', dataNascimento: '' })
     const [perfil, setPerfil] = useState<any>(null)
+    const [userPFP, setUserPFP] = useState<any>(null)
     const [erro, setErro] = useState('')
+    const [tipoGrafico, setTipoGrafico] = useState('colunas')
+    const [sintomasBuscados, setSintomasBuscados] = useState<{ id: number; nome: string }[]>([])
+    const [sintoma, setSintoma] = useState('')
+    const [pontuacaoMin, setPontuacaoMin] = useState('')
+    const [pontuacaoMax, setPontuacaoMax] = useState('')
+    const [sexo, setSexo] = useState('')
+    const [nascimentoMin, setNascimentoMin] = useState('')
+    const [nascimentoMax, setNascimentoMax] = useState('')
+
+    const [dadosEstatisticos, setDadosEstatisticos] = useState<{labels: string[], valores: number[]} | null>(null)
+    const [carregandoEstatisticas, setCarregandoEstatisticas] = useState(false)
+    const [filtrosAplicados, setFiltrosAplicados] = useState(false)
+    const graficoRef = useRef<any>(null)
+
     const formatarData = (dataString: string) => {
 
         if (!dataString) return '-'
@@ -40,23 +57,31 @@ function Menu() {
         return data.toLocaleString('pt-BR')
     }
 
+    async function enviarFotoPerfil() {
 
-    const [tipoGrafico, setTipoGrafico] = useState('colunas')
+        if (!userPFP) {
+            alert('Selecione uma foto primeiro')
+            return
+        }
 
-    const [sintomasBuscados, setSintomasBuscados] = useState<
-        { id: number; nome: string }[]
-    >([])
-    const [sintoma, setSintoma] = useState('')
-    const [pontuacaoMin, setPontuacaoMin] = useState('')
-    const [pontuacaoMax, setPontuacaoMax] = useState('')
-    const [sexo, setSexo] = useState('')
-    const [nascimentoMin, setNascimentoMin] = useState('')
-    const [nascimentoMax, setNascimentoMax] = useState('')
+        const formData = new FormData()
 
-    const [dadosEstatisticos, setDadosEstatisticos] = useState<{labels: string[], valores: number[]} | null>(null)
-    const [carregandoEstatisticas, setCarregandoEstatisticas] = useState(false)
-    const [filtrosAplicados, setFiltrosAplicados] = useState(false)
-    const graficoRef = useRef<any>(null)
+        formData.append('foto', userPFP)
+
+        const response = await fetch(
+            'http://localhost:5000/api/user_pfp',
+            {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            }
+        )
+
+        const data = await response.json()
+
+        console.log(data)
+
+    }
 
     useEffect(() => {
         if (pagina === 'home') {
@@ -152,6 +177,47 @@ function Menu() {
             })
             .catch(() => setErro('Erro ao buscar estatísticas'))
             .finally(() => setCarregandoEstatisticas(false))
+    }
+
+    const aplicarMascaraCPF = (valor: string) => {
+        return valor
+            .replace(/\D/g, '')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+            .slice(0, 14)
+    }
+
+    const salvarPaciente = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setErro('')
+
+        const pacienteParaSalvar = {
+            ...novoPaciente,
+            cpf: novoPaciente.cpf.replace(/\D/g, '')
+        }
+
+        try {
+            const res = await fetch('/api/meus_pacientes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(pacienteParaSalvar)
+            })
+
+            if (!res.ok) {
+                throw new Error('Erro ao criar paciente')
+            }
+
+            setMostrarFormPaciente(false)
+            setNovoPaciente({ nome: '', cpf: '', sexo: 'Masculino', dataNascimento: '' })
+            fetch('/api/meus_pacientes', { credentials: 'include' })
+                .then((res2) => res2.json())
+                .then((data) => setPacientes(data))
+                .catch(() => setErro('Erro ao atualizar lista de pacientes'))
+        } catch (error) {
+            setErro('Erro ao criar paciente')
+        }
     }
 
     const aplicarFiltros = () => {
@@ -286,31 +352,52 @@ function Menu() {
                 <MenuButton texto="Home" onClick={() => setPagina('home')}/>
                 <MenuButton texto="Pacientes" onClick={() => setPagina('paciente')}/>
                 <MenuButton texto="Estatisticas" onClick={() => setPagina('estatisticas')}/>
-            </div>
+                <MenuButton texto="Sair" onClick={logout}/>
+            </div>'
 
             <div className={pagina}>
 
                 {pagina === 'home' && (
                     <div className="perfilDiv">
 
-                        <h1>Meu Perfil</h1>
-                        {erro && <p className="erro">{erro}</p>}
-
                         {perfil ? (
                             <div className="perfilCard">
 
+                                <h1>Meu Perfil</h1>
+                                {erro && <p className="erro">{erro}</p>}
+
                                 <img
                                     className="perfilFoto"
-                                    src={perfil.fotoPerfil || defaultPFP}
+                                    src={perfil.fotoPerfil ? `http://localhost:5000${perfil.fotoPerfil}` : defaultPFP}
                                     alt="Foto de Perfil"
                                 />
+
+                                <label htmlFor="userInputPFP" className="editarFotoBtn">
+                                    📷
+                                </label>
+
+                                <input
+                                    id="userInputPFP"
+                                    type="file"
+                                    accept="image/*"
+                                    hidden
+                                    onChange={(e) => {
+                                        if (e.target.files?.[0]) {
+                                            setUserPFP(e.target.files[0])
+                                        }
+                                    }}
+                                />
+
+                                <button className="userSavePFP" onClick={enviarFotoPerfil}>
+                                    Salvar foto
+                                </button>
 
                                 <div className="perfilInfo">
 
                                     <h2>{perfil.nome}</h2>
 
                                     <p>
-                                        <strong>Usuário:</strong> {perfil.user}
+                                        <strong>Username:</strong> {perfil.user}
                                     </p>
 
                                     <p>
@@ -320,10 +407,6 @@ function Menu() {
                                     <p>
                                         <strong>Conta criada em:</strong> {formatarDataHora(perfil.dataCriacao)}
                                     </p>
-
-                                    <button className="logoutButton" onClick={logout}>
-                                        Sair
-                                    </button>
 
                                 </div>
 
@@ -337,8 +420,66 @@ function Menu() {
 
                 {pagina === 'paciente' && (
                     <div className="pacienteDiv">
-                        <h1>Pacientes</h1>
+                        <div className="pacienteHeader">
+                            <h1>Pacientes</h1>
+                            <button className="btnAdd" onClick={() => { setMostrarFormPaciente(!mostrarFormPaciente); setErro('') }}>
+                                Criar Paciente
+                            </button>
+                        </div>
+
+                        {mostrarFormPaciente && (
+                            <form className="pacienteForm" onSubmit={salvarPaciente}>
+                                <div className="formGroup">
+                                    <label>Nome</label>
+                                    <input
+                                        type="text"
+                                        value={novoPaciente.nome}
+                                        onChange={(e) => setNovoPaciente({ ...novoPaciente, nome: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div className="formGroup">
+                                    <label>CPF</label>
+                                    <input
+                                        type="text"
+                                        value={novoPaciente.cpf}
+                                        onChange={(e) => setNovoPaciente({ ...novoPaciente, cpf: aplicarMascaraCPF(e.target.value) })}
+                                        required
+                                    />
+                                </div>
+                                <div className="formGroup">
+                                    <label>Sexo</label>
+                                    <select
+                                        value={novoPaciente.sexo}
+                                        onChange={(e) => setNovoPaciente({ ...novoPaciente, sexo: e.target.value })}
+                                    >
+                                        <option value="Masculino">Masculino</option>
+                                        <option value="Feminino">Feminino</option>
+                                    </select>
+                                </div>
+                                <div className="formGroup">
+                                    <label>Data de nascimento</label>
+                                    <input
+                                        type="date"
+                                        value={novoPaciente.dataNascimento}
+                                        onChange={(e) => setNovoPaciente({ ...novoPaciente, dataNascimento: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div className="formActions">
+                                    <button type="submit" className="btnSave">Salvar</button>
+                                    <button type="button" className="btnCancel" onClick={() => {
+                                        setMostrarFormPaciente(false)
+                                        setNovoPaciente({ nome: '', cpf: '', sexo: 'Masculino', dataNascimento: '' })
+                                    }}>
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+
                         {erro && <p className="erro">{erro}</p>}
+
                         {pacientes.length === 0 ? (
                             <p>Nenhum paciente encontrado.</p>
                         ) : (
