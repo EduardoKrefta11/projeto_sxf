@@ -124,6 +124,65 @@ def register_menu_routes(app):
             "fotoPerfil": caminho_banco
         })
     
+    @app.route('/api/paciente_pfp', methods=['POST'])
+    def pacientePfp():
+        user_id = session.get('user_id')
+
+        if not user_id:
+            return jsonify({"error": "Não autorizado"}), 401
+
+        id_paciente = request.form.get('idPaciente')
+
+        if not id_paciente:
+            return jsonify({"error": "Paciente não informado"}), 400
+
+        if 'foto' not in request.files:
+            return jsonify({"error": "Nenhum arquivo enviado"}), 400
+
+        arquivo = request.files['foto']
+
+        if arquivo.filename == '':
+            return jsonify({"error": "Arquivo inválido"}), 400
+
+        extensao = arquivo.filename.rsplit('.', 1)[1].lower()
+
+        nome_arquivo = f"paciente_{id_paciente}.{extensao}"
+
+        pasta_upload = os.path.join('uploads', 'pacientes')
+
+        os.makedirs(pasta_upload, exist_ok=True)
+
+        caminho_fisico = os.path.join(
+            pasta_upload,
+            secure_filename(nome_arquivo)
+        )
+
+        arquivo.save(caminho_fisico)
+
+        caminho_banco = f"/uploads/pacientes/{nome_arquivo}"
+
+        linhas_afetadas = execute_db(
+            """
+            UPDATE paciente
+            SET fotoPerfil = %s
+            WHERE id = %s
+            AND idPesquisador = %s
+            """,
+            (caminho_banco, id_paciente, user_id)
+        )
+
+        return jsonify({
+            "message": "Foto enviada com sucesso",
+            "fotoPerfil": caminho_banco
+        })
+
+    @app.route('/uploads/pacientes/<filename>')
+    def servir_paciente_pfp(filename):
+        return send_from_directory(
+            'uploads/pacientes',
+            filename
+        )
+    
     @app.route('/uploads/perfis/<filename>')
     def servir_pfp(filename):
         return send_from_directory(

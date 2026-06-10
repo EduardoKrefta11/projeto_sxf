@@ -21,7 +21,11 @@ function Menu() {
     const [pagina, setPagina] = useState('home')
     const [erro, setErro] = useState('')
 
+    const [perfil, setPerfil] = useState<any>(null)
+    const [userPFP, setUserPFP] = useState<any>(null)
+
     const [pacientes, setPacientes] = useState<any[]>([])
+    const [pacientePFP, setPacientePFP] = useState<any>(null)
     const [mostrarFormPaciente, setMostrarFormPaciente] = useState(false)
     const [novoPaciente, setNovoPaciente] = useState({ nome: '', cpf: '', sexo: 'Masculino', dataNascimento: '' })
     const [mostrarFormConsulta, setMostrarFormConsulta] = useState(false)
@@ -29,9 +33,6 @@ function Menu() {
     const [sintomasSelecionados, setSintomasSelecionados] = useState<number[]>([])
     const [observacao, setObservacao] = useState('')
     const [tipoExame, setTipoExame] = useState('')
-
-    const [perfil, setPerfil] = useState<any>(null)
-    const [userPFP, setUserPFP] = useState<any>(null)
 
     const [tipoGrafico, setTipoGrafico] = useState('colunas')
     const [sintomasBuscados, setSintomasBuscados] = useState<{ id: number; nome: string }[]>([])
@@ -77,6 +78,31 @@ function Menu() {
 
         const response = await fetch(
             'http://localhost:5000/api/user_pfp',
+            {
+                method: 'POST',
+                body: formData,
+                credentials: 'include'
+            }
+        )
+
+        const data = await response.json()
+
+    }
+
+    async function enviarPacienteFoto(paciente: any) {
+
+        if (!pacientePFP) {
+            alert('Selecione uma foto primeiro')
+            return
+        }
+
+        const formData = new FormData()
+
+        formData.append('foto', pacientePFP)
+        formData.append('idPaciente', paciente.id)
+
+        const response = await fetch(
+            'http://localhost:5000/api/paciente_pfp',
             {
                 method: 'POST',
                 body: formData,
@@ -601,9 +627,28 @@ function Menu() {
                                         <div className="pacienteLeft">
                                             <img
                                                 className="pacienteFoto"
-                                                src={paciente.fotoPerfil || defaultPFP}
-                                                alt={paciente.nome}
+                                                src={paciente.fotoPerfil ? `http://localhost:5000${paciente.fotoPerfil}` : defaultPFP}
+                                                alt="Foto de Perfil"
                                             />
+                                            <label htmlFor={`pacienteInputPFP-${paciente.id}`} className="editarFotoBtn">
+                                                📷
+                                            </label>
+
+                                            <input
+                                                id={`pacienteInputPFP-${paciente.id}`}
+                                                type="file"
+                                                accept="image/*"
+                                                hidden
+                                                onChange={(e) => {
+                                                    if (e.target.files?.[0]) {
+                                                        setPacientePFP(e.target.files[0])
+                                                    }
+                                                }}
+                                            />
+
+                                            <button className="userSavePFP" onClick={() => {enviarPacienteFoto(paciente)}}>
+                                                Salvar foto
+                                            </button>
                                             <div>
                                                 <div className="pacienteName">
                                                     {paciente.nome}
