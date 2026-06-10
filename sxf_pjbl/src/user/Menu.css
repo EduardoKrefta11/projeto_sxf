@@ -1,3 +1,69 @@
+.consultaForm {
+	display: flex;
+	flex-direction: column;
+	gap: 18px;
+	padding: 22px;
+	border-radius: 20px;
+	background: rgba(255, 255, 255, 0.96);
+	border: 1px solid rgba(168, 220, 217, 0.55);
+	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.08);
+	margin-top: 16px;
+}
+
+.consultaForm h3 {
+	margin: 0;
+	font-size: 1.4rem;
+	color: #23544f;
+}
+
+.checkboxList {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+	gap: 10px;
+	padding: 12px;
+	background: rgba(168, 220, 217, 0.12);
+	border-radius: 14px;
+	border: 1px solid rgba(168, 220, 217, 0.35);
+	max-height: 220px;
+	overflow-y: auto;
+}
+
+.checkboxList label {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 8px 10px;
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.8);
+	border: 1px solid rgba(168, 220, 217, 0.25);
+	cursor: pointer;
+	transition: background 0.2s ease, transform 0.2s ease;
+	font-size: 0.95rem;
+	color: #2d5150;
+}
+
+.checkboxList label:hover {
+	background: rgba(168, 220, 217, 0.18);
+	transform: translateY(-1px);
+}
+
+.checkboxList input {
+	accent-color: #23544f;
+}
+
+.consultaTitle {
+	font-weight: 700;
+	color: #275a58;
+	font-size: 1.2rem;
+	margin-bottom: 6px;
+}
+
+.consultaSubtitle {
+	font-size: 0.9rem;
+	color: #5f7d7c;
+	margin-bottom: 12px;
+}
+
 .pacientesList {
 	display: flex;
 	flex-direction: column;
@@ -280,7 +346,8 @@
 
 .pdfButton,
 .pdfStatsButton,
-.applyFiltersButton {
+.applyFiltersButton,
+.novaConsulta {
 	padding: 12px 22px;
 	border: none;
 	border-radius: 14px;
@@ -293,7 +360,8 @@
 
 .pdfButton:hover,
 .pdfStatsButton:hover,
-.applyFiltersButton:hover {
+.applyFiltersButton:hover,
+.novaConsulta:hover {
 	background: #8cc8c1;
 	transform: translateY(-1px);
 	box-shadow: 0 12px 22px rgba(0, 0, 0, 0.08);

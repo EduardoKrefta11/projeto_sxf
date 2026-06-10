@@ -19,12 +19,20 @@ function Menu() {
 
     const navigate = useNavigate()
     const [pagina, setPagina] = useState('home')
+    const [erro, setErro] = useState('')
+
     const [pacientes, setPacientes] = useState<any[]>([])
     const [mostrarFormPaciente, setMostrarFormPaciente] = useState(false)
     const [novoPaciente, setNovoPaciente] = useState({ nome: '', cpf: '', sexo: 'Masculino', dataNascimento: '' })
+    const [mostrarFormConsulta, setMostrarFormConsulta] = useState(false)
+    const [idPacienteSelecionado, setIdPacienteSelecionado] = useState<number | null>(null)
+    const [sintomasSelecionados, setSintomasSelecionados] = useState<number[]>([])
+    const [observacao, setObservacao] = useState('')
+    const [tipoExame, setTipoExame] = useState('')
+
     const [perfil, setPerfil] = useState<any>(null)
     const [userPFP, setUserPFP] = useState<any>(null)
-    const [erro, setErro] = useState('')
+
     const [tipoGrafico, setTipoGrafico] = useState('colunas')
     const [sintomasBuscados, setSintomasBuscados] = useState<{ id: number; nome: string }[]>([])
     const [sintoma, setSintoma] = useState('')
@@ -33,7 +41,6 @@ function Menu() {
     const [sexo, setSexo] = useState('')
     const [nascimentoMin, setNascimentoMin] = useState('')
     const [nascimentoMax, setNascimentoMax] = useState('')
-
     const [dadosEstatisticos, setDadosEstatisticos] = useState<{labels: string[], valores: number[]} | null>(null)
     const [carregandoEstatisticas, setCarregandoEstatisticas] = useState(false)
     const [filtrosAplicados, setFiltrosAplicados] = useState(false)
@@ -79,9 +86,11 @@ function Menu() {
 
         const data = await response.json()
 
-        console.log(data)
-
     }
+
+    useEffect(() => {
+        buscarSintomas()
+    }, [])
 
     useEffect(() => {
         if (pagina === 'home') {
@@ -111,18 +120,60 @@ function Menu() {
 
     useEffect(() => {
         if (pagina === 'estatisticas') {
-            fetch('/api/buscar_sintomas', { credentials: 'include' })
-                .then((res) => {
-                    if (res.status === 401) throw new Error('Não autorizado')
-                    return res.json()
-                })
-                .then((data) => setSintomasBuscados(data))
-                .catch(() => setErro('Erro ao buscar sintomas'))
-
             setFiltrosAplicados(false)
             setDadosEstatisticos(null)
         }
-    }, [pagina])
+    }, [pagina])    
+
+    const buscarSintomas = async () => {
+        try {
+            const res = await fetch('/api/buscar_sintomas', {
+                credentials: 'include'
+            })
+
+            if (res.status === 401) throw new Error()
+
+            const data = await res.json()
+            setSintomasBuscados(data)
+
+        } catch (err) {
+            setErro('Erro ao buscar sintomas')
+        }  
+    }
+
+    const salvarConsulta = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        try {
+            const res = await fetch('/api/paciente_nova_consulta', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    idPaciente: idPacienteSelecionado,
+                    sintomas: sintomasSelecionados,
+                    observacao,
+                    tipoExame
+                })
+            })
+
+            if (!res.ok) {
+                throw new Error('Erro ao salvar consulta')
+            }
+
+            if (sintomasSelecionados.length === 0) {
+                setErro('Selecione pelo menos um sintoma')
+                return
+            }
+
+            setMostrarFormConsulta(false)
+            setSintomasSelecionados([])
+            setObservacao('')
+
+        } catch (err) {
+            setErro('Erro ao salvar consulta')
+        }
+    }
 
     const montarParametrosEstatisticas = (opcoes?: { incluirTipoGrafico?: boolean }) => {
         const parametros = new URLSearchParams()
@@ -478,6 +529,67 @@ function Menu() {
                             </form>
                         )}
 
+                        {mostrarFormConsulta && (
+                            <form className="consultaForm" onSubmit={salvarConsulta}>
+                                
+                                <h3>Nova Consulta</h3>
+
+                                <div className="formGroup">
+                                    <label>Sintomas</label>
+
+                                    <div className="checkboxList">
+                                        {sintomasBuscados.map((s) => (
+                                            <label key={s.id}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={sintomasSelecionados.includes(s.id)}
+                                                    onChange={() => {
+                                                        setSintomasSelecionados(prev =>
+                                                            prev.includes(s.id)
+                                                                ? prev.filter(id => id !== s.id)
+                                                                : [...prev, s.id]
+                                                        )
+                                                    }}
+                                                />
+                                                {s.nome}
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="formGroup">
+                                    <label>Tipo de Exame</label>
+                                    <textarea
+                                        value={tipoExame}
+                                        onChange={(e) => setTipoExame(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="formGroup">
+                                    <label>Observação</label>
+                                    <textarea
+                                        value={observacao}
+                                        onChange={(e) => setObservacao(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="formActions">
+                                    <button type="submit" className="btnSave">
+                                        Salvar
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        className="btnCancel"
+                                        onClick={() => setMostrarFormConsulta(false)}
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+
+                            </form>
+                        )}
+
                         {erro && <p className="erro">{erro}</p>}
 
                         {pacientes.length === 0 ? (
@@ -506,6 +618,14 @@ function Menu() {
                                         <div className="pacienteRight">
                                             <div className="pacienteLastTest">Último teste: {formatarDataHora(paciente.ultimoTeste)}</div>
                                             <div className="pacienteCreated">Criado: {formatarDataHora(paciente.dataCriacao)}</div>
+                                            <div className="pacienteScore">Score: {paciente.pontuacao}</div>
+                                            <div className="pacienteEncaminhamento">Encaminhamento: {paciente.encaminhamento}</div>
+                                            <button className="novaConsulta" onClick={() => {
+                                                setIdPacienteSelecionado(paciente.id)
+                                                setMostrarFormConsulta(true)
+                                                setSintomasSelecionados([])
+                                                setObservacao('')
+                                                setTipoExame('')}}>Nova Consulta</button>
                                             <button className="pdfButton" onClick={() => window.open(`/api/pdf/paciente/${paciente.id}`, '_blank')}>
                                                 Gerar PDF
                                             </button>

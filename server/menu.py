@@ -133,6 +133,7 @@ def register_menu_routes(app):
 
     @app.route('/api/meus_pacientes', methods=['GET', 'POST'])
     def meus_pacientes():
+
         user_id = session.get('user_id')
         if not user_id:
             return jsonify({"error": "Não autorizado"}), 401
@@ -148,16 +149,126 @@ def register_menu_routes(app):
                 return jsonify({"error": "Dados incompletos"}), 400
 
             execute_db(
-                "INSERT INTO paciente (nome, cpf, sexo, dataNascimento, idPesquisador, idCriador) VALUES (%s, %s, %s, %s, %s, %s)",
+                """INSERT INTO
+                paciente 
+                (nome, cpf, sexo, dataNascimento, idPesquisador, idCriador) 
+                VALUES 
+                (%s, %s, %s, %s, %s, %s)""",
                 (nome, cpf, sexo, data_nascimento, user_id, user_id)
             )
             return jsonify({"success": True}), 201
 
-        pacientes = query_db(
-            "SELECT id, nome, sexo, dataNascimento, ultimoTeste, dataCriacao, fotoPerfil FROM paciente WHERE idPesquisador = %s",
-            (user_id,)
-        )
+        pacientes = query_db("""
+            SELECT
+                p.id,
+                p.nome,
+                p.sexo,
+                p.dataNascimento,
+                p.ultimoTeste,
+                p.dataCriacao,
+                p.fotoPerfil,
+                c.pontuacao,
+                c.encaminhamento
+            FROM paciente p
+            LEFT JOIN consulta c
+                ON c.id = (
+                    SELECT id
+                    FROM consulta
+                    WHERE idPaciente = p.id
+                    ORDER BY dataHora DESC
+                    LIMIT 1
+                ) WHERE p.idPesquisador = %s""", (user_id,))
+        
         return jsonify(pacientes or [])
+
+    @app.route('/api/paciente_nova_consulta', methods=['POST'])
+    def nova_consulta():
+        data = request.get_json()
+
+        user_id = session.get('user_id')
+        id_paciente = data['idPaciente']
+        sintomas = data['sintomas']
+        tipo_exame = data.get('tipoExame')
+        observacao = data.get('observacao')
+
+        paciente = query_db("""
+            SELECT sexo
+            FROM paciente
+            WHERE id = %s
+        """, (id_paciente,), one=True)
+
+        ids = ','.join(['%s'] * len(sintomas))
+
+        rows = query_db(f"""
+            SELECT id, pesoMasculino, pesoFeminino
+            FROM sintoma
+            WHERE id IN ({ids})
+        """, tuple(sintomas))
+
+        score = 0
+
+        for s in rows:
+            if paciente['sexo'] == 'Masculino':
+                score += float(s['pesoMasculino'] or 0)
+            else:
+                score += float(s['pesoFeminino'] or 0)
+
+        score = round(score, 2)
+
+        limite = 0.56 if paciente['sexo'] == 'Masculino' else 0.55
+
+        encaminhamento = (
+            "Encaminhar para teste genético confirmatório"
+            if score >= limite
+            else "Sem necessidade de encaminhamento"
+        )
+
+        resultado_exame = (
+            "Positivo"
+            if score >= limite
+            else "Negativo"
+        )
+
+        consulta_id = execute_db("""
+            INSERT INTO consulta (
+                idPaciente,
+                idPesquisador,
+                dataHora,
+                tipoExame,
+                resultadoExame,
+                pontuacao,
+                encaminhamento,
+                observacao
+            )
+            VALUES (%s, %s, NOW(), %s, %s, %s, %s, %s)
+        """, (
+            id_paciente,
+            user_id,
+            tipo_exame,
+            resultado_exame,
+            score,
+            encaminhamento,
+            observacao
+        ), return_lastrowid=True)
+
+        for sintoma_id in sintomas:
+            execute_db("""
+                INSERT INTO consultasintoma (
+                    idConsulta,
+                    idSintoma
+                )
+                VALUES (%s, %s)
+            """, (
+                consulta_id,
+                sintoma_id
+            ))
+
+        return jsonify({
+            "success": True,
+            "score": score,
+            "resultadoExame": resultado_exame,
+            "encaminhamento": encaminhamento
+        }), 201
 
     @app.route('/api/pdf/paciente/<int:paciente_id>', methods=['GET'])
     def gerar_pdf_paciente(paciente_id):
@@ -190,24 +301,17 @@ def register_menu_routes(app):
                 c.pontuacao,
                 c.encaminhamento,
                 c.observacao,
-
                 GROUP_CONCAT(
                     s.nome
                     SEPARATOR ', '
                 ) as sintomas
-
             FROM consulta c
-
             LEFT JOIN consultasintoma cs
                 ON c.id = cs.idConsulta
-
             LEFT JOIN sintoma s
                 ON cs.idSintoma = s.id
-
             WHERE c.idPaciente = %s
-
             GROUP BY c.id
-
             ORDER BY c.dataHora ASC
         """, (paciente_id,))
 
@@ -406,10 +510,8 @@ def register_menu_routes(app):
                 FROM paciente p
                 LEFT JOIN consulta c
                     ON c.idPaciente = p.id
-
                 LEFT JOIN consultaSintoma cs
                     ON cs.idConsulta = c.id
-
                 LEFT JOIN sintoma s
                     ON s.id = cs.idSintoma
                 WHERE {where_clause}
@@ -456,7 +558,6 @@ def register_menu_routes(app):
             query = f"""
                 SELECT
                     s.nome as label,
-
                     AVG(
                         CASE
                             WHEN p.sexo = 'Masculino'
@@ -465,20 +566,14 @@ def register_menu_routes(app):
                                 THEN s.pesoFeminino
                         END
                     ) as valor
-
                 FROM consultaSintoma cs
-
                 INNER JOIN sintoma s
                     ON cs.idSintoma = s.id
-
                 INNER JOIN consulta c
                     ON cs.idConsulta = c.id
-
                 INNER JOIN paciente p
                     ON c.idPaciente = p.id
-
                 WHERE {where_clause}
-
                 GROUP BY s.id, s.nome
             """
 
@@ -573,20 +668,14 @@ def register_menu_routes(app):
                                 THEN s.pesoFeminino
                         END
                     ) as valor
-
                 FROM consultaSintoma cs
-
                 INNER JOIN sintoma s
                     ON cs.idSintoma = s.id
-
                 INNER JOIN consulta c
                     ON cs.idConsulta = c.id
-
                 INNER JOIN paciente p
                     ON c.idPaciente = p.id
-
                 WHERE {where_clause}
-
                 GROUP BY s.id, s.nome
             """
 

@@ -47,7 +47,7 @@ def query_db(query, args=(), one=False):
         if con:
             con.close()
 
-def execute_db(query, args=()):
+def execute_db(query, args=(), return_lastrowid=False):
 
     con = None
     cursor = None
@@ -64,16 +64,16 @@ def execute_db(query, args=()):
 
         con.commit()
 
+        if return_lastrowid:
+            return cursor.lastrowid
+
         return True
     
     except Exception as e:
-
         print(f"ERRO MYSQL: {e}")
-
         return None
     
     finally:
-
         if cursor:
             cursor.close()
         if con:    
