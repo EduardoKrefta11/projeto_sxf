@@ -342,7 +342,8 @@ def register_menu_routes(app):
                 sexo,
                 dataNascimento,
                 ultimoTeste,
-                dataCriacao
+                dataCriacao,
+                fotoPerfil
             FROM paciente
             WHERE id = %s
             AND idPesquisador = %s
@@ -389,6 +390,21 @@ def register_menu_routes(app):
             "assets",
             "buko_kaesemodel.webp"
         )
+
+        if paciente['fotoPerfil']:
+            foto_path = os.path.join(
+                os.path.dirname(__file__),
+                paciente['fotoPerfil'].lstrip('/')
+            )
+        else:
+            foto_path = os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "sxf_pjbl",
+                "src",
+                "assets",
+                "default.png"
+            )
 
         pdf.drawImage(
             logo_path,
@@ -438,6 +454,16 @@ def register_menu_routes(app):
             50,
             y,
             f"Data de Criação: {paciente['dataCriacao']}"
+        )
+
+        pdf.drawImage(
+            foto_path,
+            420,
+            550,
+            width=100,
+            height=100,
+            preserveAspectRatio=True,
+            mask='auto'
         )
 
         y -= 40
@@ -497,19 +523,25 @@ def register_menu_routes(app):
 
             y -= 18
 
-            pdf.drawString(
-                70,
-                y,
-                f"Observação: {consulta['observacao'] or 'Nenhuma'}"
+            linhas = textwrap.wrap(
+                f"Observação: {consulta['observacao'] or 'Nenhuma'}",
+                width=80
             )
 
-            y -= 25
+            for linha in linhas:
+                pdf.drawString(70, y, linha)
+                y -= 15
 
-            pdf.drawString(
-                70,
-                y,
-                f"Sintomas: {consulta['sintomas'] or 'Nenhum'}"
+            y -= 10
+
+            linhas = textwrap.wrap(
+                f"Sintomas: {consulta['sintomas'] or 'Nenhum'}",
+                width=80
             )
+
+            for linha in linhas:
+                pdf.drawString(70, y, linha)
+                y -= 15
 
             y -= 25
 
