@@ -577,24 +577,6 @@ def register_menu_routes(app):
                 GROUP BY p.sexo
             """
 
-        elif organizacao == 'data':
-
-            query = f"""
-                SELECT
-                    DATE(c.dataHora) as label,
-                    COUNT(DISTINCT p.id) as valor
-                FROM consulta c
-                INNER JOIN paciente p
-                    ON c.idPaciente = p.id
-                LEFT JOIN consultaSintoma cs
-                    ON cs.idConsulta = c.id
-                LEFT JOIN sintoma s
-                    ON s.id = cs.idSintoma
-                WHERE {where_clause}
-                GROUP BY DATE(c.dataHora)
-                ORDER BY label
-            """
-
         elif organizacao == 'sintoma':
 
             query = f"""
@@ -741,7 +723,7 @@ def register_menu_routes(app):
         else:
             return jsonify({"error": "Organização inválida"}), 400
 
-        dadosEstatisticos = query_db(query, tuple(parametros))
+        dadosEstatisticos = query_db(query, tuple(parametros))  
 
         if dadosEstatisticos is None:
             return jsonify({"error": "Erro ao buscar dados"}), 500
@@ -803,9 +785,6 @@ def register_menu_routes(app):
 
         filtrosTexto = "; ".join(filtrosAplicados) if filtrosAplicados else "Nenhum filtro aplicado"
 
-        y = wrap_text(y, f"Tipo de gráfico: {tipoGrafico}")
-        y -= 8
-        y = wrap_text(y, f"Filtros aplicados: {filtrosTexto}")
         y -= 20
 
         imagem_grafico_base64 = dados_json.get('imagemGraficoBase64')

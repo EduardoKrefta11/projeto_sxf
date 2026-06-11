@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend } from 'chart.js'
 import { Bar, Line, Pie } from 'react-chartjs-2'
-import defaultPFP from '../assets/default.png' // NOTA: ADICIONAR defaultPFP em foto de Perfil do usuário e do paciente 
+import defaultPFP from '../assets/default.png'
 import './Menu.css'
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, ArcElement, Title, Tooltip, Legend)
@@ -35,6 +35,7 @@ function Menu() {
     const [tipoExame, setTipoExame] = useState('')
 
     const [tipoGrafico, setTipoGrafico] = useState('colunas')
+    const [organizacao, setOrganizacao] = useState('genero')
     const [sintomasBuscados, setSintomasBuscados] = useState<{ id: number; nome: string }[]>([])
     const [sintoma, setSintoma] = useState('')
     const [pontuacaoMin, setPontuacaoMin] = useState('')
@@ -205,6 +206,8 @@ function Menu() {
         const parametros = new URLSearchParams()
         const incluirTipoGrafico = opcoes?.incluirTipoGrafico ?? false
 
+        parametros.append('organizacao', organizacao)
+
         if (sexo) {
             parametros.append('sexo', sexo)
         }
@@ -327,6 +330,7 @@ function Menu() {
             sintoma,
             pontuacaoMin,
             pontuacaoMax,
+            organizacao,
             tipoGrafico,
             imagemGraficoBase64
         }
@@ -684,10 +688,27 @@ function Menu() {
 
                 {pagina === 'estatisticas' && (
                     <div className="statsDiv">
-                        <h1>Estatísticas</h1>
                         {erro && <p className="erro">{erro}</p>}
-                        
+
                         <div className="statsControls">
+
+                            <h1>Estatísticas</h1>
+
+                                <div className="controlGroup">
+                                    <label>Agrupar por:</label>
+
+                                    <select
+                                        value={organizacao}
+                                        onChange={(e) => {
+                                            setOrganizacao(e.target.value)
+                                            setFiltrosAplicados(false)
+                                        }}
+                                    >
+                                        <option value="genero">Gênero</option>
+                                        <option value="sintoma">Sintoma</option>
+                                        <option value="peso">Peso médio</option>
+                                    </select>
+                                </div>
 
                                 <div className="controlGroup">
                                     <label>Sexo:</label>
@@ -765,7 +786,7 @@ function Menu() {
                                 <div className="buttonGroup">
                                                 <button className={tipoGrafico === 'colunas' ? 'active' : ''} onClick={() => setTipoGrafico('colunas')}>Colunas</button>
                                     <button className={tipoGrafico === 'linhas' ? 'active' : ''} onClick={() => setTipoGrafico('linhas')}>Linhas</button>
-                                    <button className={tipoGrafico === 'pizza' ? 'active' : ''} onClick={() => setTipoGrafico('pizza')}>Pizza</button>
+                                    <button className={tipoGrafico === 'pizza' ? 'active' : ''} onClick={() => setTipoGrafico('pizza')}>Setores</button>
                                     <button className={tipoGrafico === 'barras' ? 'active' : ''} onClick={() => setTipoGrafico('barras')}>Barras</button>
                                 </div>
 

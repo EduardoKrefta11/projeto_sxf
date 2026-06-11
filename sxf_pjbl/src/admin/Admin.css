@@ -77,7 +77,6 @@
     border-bottom: 3px solid #a8dcd9;
 }
 
-/* Listas Gerais */
 .userList, .pacienteList, .sintomaList, .consultaList {
     display: flex;
     flex-direction: column;
@@ -112,7 +111,6 @@
     gap: 15px;
 }
 
-/* Botões */
 .btnAdd {
     background: rgba(232, 245, 233, 0.95);
     border: 1px solid rgba(168, 220, 217, 0.9);
@@ -163,7 +161,6 @@
     background: rgba(255, 205, 210, 1);
 }
 
-/* Aba de Consultas Específico */
 .consultaCard {
     flex-direction: column;
     align-items: flex-start;
@@ -199,7 +196,6 @@
     box-sizing: border-box;
 }
 
-/* Formulários */
 .formCadastro {
     display: flex;
     flex-direction: column;
