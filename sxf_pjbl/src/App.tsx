@@ -1,14 +1,3 @@
-// cd 'PASTA DO app.tsx'
-// npm run dev
-// PARA SALVAR PROJETO NO GIT
-// git init
-// git add .
-// git commit -m "XXX"
-// git push -u origin main
-
-// Usuário admin comum: Username = adm_teste | Senha = 123adm
-// Usuário teste comum: Username = com_teste | Senha = 123
-
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import './App.css'

@@ -1,11 +1,3 @@
-## cd 'PASTA DO main.py'
-## python -m venv .venv
-## .venv\Scripts\activate
-## pip install Flask
-## pip install PyMySQL
-## pip install flask_cors
-## pip install bcrypt
-
 from flask import Flask, jsonify, request, session
 from flask_cors import CORS 
 import bcrypt
@@ -18,7 +10,6 @@ from menu import register_menu_routes
 app = Flask(__name__)
 register_admin_routes(app)
 register_menu_routes(app)
-# python -c "import secrets; print(secrets.token_urlsafe(48))"
 app.secret_key = os.environ.get('FLASK_SECRET', '123')
 cors = CORS(app, supports_credentials=True, origins=['http://localhost:5173'], allow_headers=['Content-Type'])
 
