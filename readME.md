@@ -7,6 +7,8 @@
 ![Flask](https://img.shields.io/badge/flask-%23000.svg?style=for-the-badge&logo=flask&logoColor=white)
 ![MySQL](https://img.shields.io/badge/mysql-4479A1.svg?style=for-the-badge&logo=mysql&logoColor=white)
 
+---
+
 ## Sumário
 
 - [Sobre CSXF](#sobre-csxf)
@@ -21,14 +23,22 @@
 - [Equipe](#equipe)
 - [Licença](#licença)
 
+---
+
 ## Sobre CSXF
 CSXF é um aplicativo Web desenvolvido com o objetivo de auxiliar pesquisadores da Síndrome da X Frágil a terem um ambiente eficiente, acessível e de baixo custo para o gerenciamento de dados e pacientes.
 Com uma interface simples e responsiva, buscamos fornecer a ferramenta de mais fácil uso para qualquer pessoa interessada na pesquisa da Síndrome.
 
+---
+
 ## Ferramentas de desenvolvimento
+
+---
 
 ### SO
 Windows 25H2 (Compilação do Sistema Operacional 26200.8655)
+
+---
 
 ### Frontend
 - Node.js 22.20.0
@@ -40,6 +50,8 @@ Windows 25H2 (Compilação do Sistema Operacional 26200.8655)
 - Chart.js 4.5.1
 - React-ChartJS-2 5.3.1
 
+---
+
 ### Backend
 - Python 3.14.4
 - pip 26.1.2
@@ -50,22 +62,31 @@ Windows 25H2 (Compilação do Sistema Operacional 26200.8655)
 - Werkzeug 3.1.8
 - Reportlab 4.5.1
 
+---
+
 ### Banco de Dados
 - MySQL Server 8.0.43
 - MySQL Workbench 8.0.43
 
+---
+
 ## Funcionalidades
+
 ### Autenticação e Controle de Acesso
 - Login seguro com autenticação por sessão.
 - Controle de acesso baseado em perfis de usuário.
 - Diferenciação entre usuários Administradores (ADM) e Pesquisadores (COM).
 - Encerramento seguro de sessão (logout).
 
+---
+
 ### Gerenciamento de Usuários
 - Cadastro de novos pesquisadores.
 - Edição de informações de usuários.
 - Exclusão de usuários do sistema.
 - Upload e atualização de foto de perfil.
+
+---
 
 ### Gerenciamento de Pacientes
 - Cadastro de pacientes.
@@ -74,17 +95,23 @@ Windows 25H2 (Compilação do Sistema Operacional 26200.8655)
 - Upload e atualização de foto de perfil.
 - Associação de pacientes a pesquisadores responsáveis.
 
+---
+
 ### Gerenciamento de Consultas
 - Registro de novas consultas.
 - Histórico completo de consultas por paciente.
 - Associação de sintomas às consultas realizadas.
 - Visualização de informações clínicas registradas.
 
+---
+
 ### Gerenciamento de Sintomas
 - Cadastro de sintomas.
 - Edição de sintomas existentes.
 - Remoção de sintomas.
 - Associação de múltiplos sintomas a uma consulta.
+
+---
 
 ### Estatísticas e Relatórios
 - Geração de gráficos estatísticos.
@@ -93,10 +120,14 @@ Windows 25H2 (Compilação do Sistema Operacional 26200.8655)
 - Exportação de relatórios estatísticos em PDF.
 - Inclusão automática de gráficos nos relatórios gerados.
 
+---
+
 ### Relatórios de Pacientes
 - Geração de relatório individual em PDF.
 - Histórico completo de consultas do paciente.
 - Registro dos sintomas observados em cada consulta.
+
+---
 
 ### Interface e Usabilidade
 - Interface responsiva para diferentes dispositivos.
@@ -104,12 +135,60 @@ Windows 25H2 (Compilação do Sistema Operacional 26200.8655)
 - Atualização dinâmica de dados.
 - Visualização rápida de informações relevantes para pesquisa.
 
+---
+
 ## Capturas de Tela
+
+### Login
+
+![Tela de Login](./manual/login.png)
+
+---
+
+### Menu (Usuário Comum)
+
+- Home
+
+![Tela de Home](./manual/home.png)
+
+- Pacientes
+
+![Tela de Pacientes](./manual/paciente.png)
+
+- Estatísticas
+
+![Tela de Estatísticas](./manual/stats.png)
+
+---
+
+### Admin
+
+- Usuários
+
+![Tela de Usuários Admin](./manual/admin_usuarios.png)
+
+- Pacientes
+
+![Tela de Pacientes Admin](./manual/admin_pacientes.png)
+
+- Sintomas
+
+![Tela de Sintomas Admin](./manual/admin_sintomas.png)
+
+- Consultas
+
+![Tela de Consultas Admin](./manual/admin_consultas.png)
+
+---
 
 ## Estrutura do Projeto
 
 ```text
 CSXF/
+├── manual/             # Manual de Instruções
+│   ├── readME.md
+│   ├── imagens.png     # Usadas nos readMEs
+|
 ├── server/              # Backend Flask
 │   ├── main.py
 │   ├── admin_api.py
@@ -120,20 +199,20 @@ CSXF/
 ├── sxf_pjbl/            # Frontend React
 │   ├── src/
 │   └── public/
-│
+|
+├── Dicionario_Dados_CSXF.pdf
+├── Dump_csxf.sql
 └── README.md
 ```
 
-### Descrição dos Diretórios
-
-| Diretório | Finalidade |
-|------------|------------|
-| `server/` | Backend da aplicação desenvolvido em Flask |
-| `sxf_pjbl/` | Frontend desenvolvido com React e TypeScript |
-| `uploads/` | Armazenamento de fotos de perfil |
+---
 
 ## Métodos de Instalação
+
 ### Frontend
+
+---
+
 #### Node JS - Instalação no site oficial: https://nodejs.org/en/download
 
 #### Vite
@@ -154,6 +233,8 @@ Pronto! Agora para rodar, basta rodar o seguinte comando dentro do terminal do a
 npm run dev
 ```
 
+---
+
 ### Backend
 
 #### Python - Instalação no site oficial: https://www.python.org/downloads/
@@ -171,6 +252,8 @@ pip install flask flask-cors pymysql bcrypt reportlab
 python main.py
 ```
 
+---
+
 ## Configuração Banco de Dados
 
 ## Instalação do Banco de Dados
@@ -180,6 +263,8 @@ Após instalar o server, instale o MySQL Workbench: https://dev.mysql.com/downlo
 
 O MySQL Server é necessário para fazer funcionar o SQL dentro do computador local. Já o MySQL Workbench é 
 essencial para manusear o banco de dados do sistema.
+
+---
 
 ## Variáveis de Ambiente
 
@@ -193,6 +278,8 @@ Crie as seguintes variáveis:
 | DB_PASSWORD | sua_senha_mysql |
 | DB_NAME | db_sxf |
 
+---
+
 ## Resumo de Instalação
 
 1. Instale Node.js.
@@ -203,6 +290,8 @@ Crie as seguintes variáveis:
 6. Inicie o backend com `python main.py`.
 7. Inicie o frontend com `npm run dev`.
 
+---
+
 ## Endpoints Principais
 
 A API utiliza autenticação baseada em sessão através do Flask. Após realizar login, o navegador armazenará um cookie de sessão que será utilizado para autenticar as requisições subsequentes.
@@ -212,11 +301,15 @@ Existem dois perfis de acesso:
 - ADM (Administrador)
 - COM (Pesquisador)
 
+---
+
 ### Endpoint de Login
 | Método | Rota | Descrição |
 |----------|--------|-----------|
 | POST | /api/login | Permite ao usuário se logar dentro do sistema |
 | POST | /api/logout| Permite aos usuários saírem de seus logins |
+
+---
 
 ### Endpoint do Pesquisador
 | Método | Rota | Descrição |
@@ -233,6 +326,8 @@ Existem dois perfis de acesso:
 | - | /uploads/perfis/<filename>| Retorna a foto de perfil do usuário |
 | - | /uploads/pacientes/<filename>| Retorna a foto de perfil do paciente |
 
+---
+
 ### Endpoint de Administrador
 | Método | Rota | Descrição |
 |----------|--------|-----------|
@@ -243,11 +338,7 @@ Existem dois perfis de acesso:
 | GET/POST | /api/sintomas| Permite visualizar e alterar os sintomas do sistema |
 | GET | /api/admin/consultas| Permite visualizar as consultas do sistema |
 
-## Versão
-
-Versão atual: 1.0.0
-
-Última atualização: Junho de 2026
+---
 
 ## Equipe
 
@@ -259,6 +350,8 @@ Desenvolvido por:
 Instituição: PUCPR - Pontifícia Universidade Católica do Paraná
 
 Ano: 2026
+
+---
 
 ## Licença
 ### Educacional e não comercial
