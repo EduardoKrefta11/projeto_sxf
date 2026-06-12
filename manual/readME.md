@@ -866,7 +866,7 @@ Esse relatório permite consolidar todas as informações clínicas do paciente 
 
 ---
 
-#### Rota `/api/buscar_sintomas`
+### Rota `/api/buscar_sintomas`
 
 Método: **GET**
 
@@ -936,7 +936,7 @@ Essas informações são utilizadas pelo frontend para preencher listas de sele�
 
 ---
 
-#### Rota `/api/stats`
+### Rota `/api/stats`
 
 Método: **GET**
 
