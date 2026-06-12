@@ -13,10 +13,12 @@ function Admin() {
     const [mostrarFormUsuario, setMostrarFormUsuario] = useState(false)
     const [mostrarFormPaciente, setMostrarFormPaciente] = useState(false)
     const [mostrarFormSintoma, setMostrarFormSintoma] = useState(false)
+    const [mostrarFormConsulta, setMostrarFormConsulta] = useState(false)
     
     const [usuarioEditandoId, setUsuarioEditandoId] = useState<number | null>(null)
     const [pacienteEditandoId, setPacienteEditandoId] = useState<number | null>(null)
     const [sintomaEditandoId, setSintomaEditandoId] = useState<number | null>(null)
+    const [consultaEditandoId, setConsultaEditandoId] = useState<number | null>(null)
     
     const [novoUsuario, setNovoUsuario] = useState({
         nome: '', user: '', senha: '', permissao: 'COM', dataNascimento: ''
@@ -30,12 +32,16 @@ function Admin() {
         nome: '', pesoMasculino: '', pesoFeminino: ''
     })
 
+    const [novaConsulta, setNovaConsulta] = useState({
+        idPaciente: '', tipoExame: '', observacao: '', sintomas: [] as number[]
+    })
+
     useEffect(() => {
         setMensagemErro('')
         if (abaAtiva === 'usuarios') buscarUsuarios()
         else if (abaAtiva === 'pacientes') { buscarPacientes(); buscarUsuarios(); }
         else if (abaAtiva === 'sintomas') buscarSintomas()
-        else if (abaAtiva === 'consultas') buscarConsultas()
+        else if (abaAtiva === 'consultas') { buscarConsultas(); buscarPacientes(); buscarSintomas(); }
     }, [abaAtiva])
 
     const buscarUsuarios = async () => {
@@ -167,6 +173,29 @@ function Admin() {
         } catch (error) { alert('Erro ao salvar.') }
     }
 
+    const salvarConsulta = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (novaConsulta.sintomas.length === 0) { alert('Selecione pelo menos um sintoma.'); return; }
+        try {
+            const isEdicao = consultaEditandoId !== null
+            const url = isEdicao ? `/api/admin/consultas/${consultaEditandoId}` : '/api/admin/consultas'
+            const method = isEdicao ? 'PUT' : 'POST'
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(novaConsulta),
+                credentials: 'include'
+            })
+            if (res.ok) {
+                alert(isEdicao ? 'Consulta atualizada!' : 'Consulta realizada!')
+                setMostrarFormConsulta(false)
+                setConsultaEditandoId(null)
+                setNovaConsulta({ idPaciente: '', tipoExame: '', observacao: '', sintomas: [] })
+                buscarConsultas()
+            } else { alert('Erro ao salvar consulta.') }
+        } catch (error) { alert('Erro ao salvar.') }
+    }
+
     const excluirItem = async (rota: string, id: number, callback: () => void) => {
         if (window.confirm('Tem certeza que deseja excluir?')) {
             try {
@@ -185,6 +214,15 @@ function Admin() {
             (item.cpf && item.cpf.includes(busca.replace(/\D/g, ''))) ||
             (item.user && item.user.toLowerCase().includes(busca.toLowerCase()))
         )
+    }
+
+    const toggleSintoma = (id: number) => {
+        setNovaConsulta(prev => ({
+            ...prev,
+            sintomas: prev.sintomas.includes(id) 
+                ? prev.sintomas.filter(sid => sid !== id) 
+                : [...prev.sintomas, id]
+        }))
     }
 
     return (
@@ -247,9 +285,9 @@ function Admin() {
                     {abaAtiva === 'pacientes' && (
                         <div className="abaPacientes">
                             <h1 className="adminTitle">Gerenciar Pacientes</h1>
-                            {!mostrarFormPaciente ? (
+                            {!mostrarFormPaciente && !mostrarFormConsulta ? (
                                 <button className="btnAdd" onClick={() => setMostrarFormPaciente(true)}>+ Novo Paciente</button>
-                            ) : (
+                            ) : mostrarFormPaciente ? (
                                 <form className="formCadastro" onSubmit={salvarPaciente}>
                                     <h2>{pacienteEditandoId ? 'Editar Paciente' : 'Novo Paciente'}</h2>
                                     <div className="formGroup"><label>Nome:</label><input type="text" value={novoPaciente.nome} onChange={(e) => setNovoPaciente({...novoPaciente, nome: e.target.value})} required /></div>
@@ -267,12 +305,35 @@ function Admin() {
                                         <button type="button" className="btnCancel" onClick={() => { setMostrarFormPaciente(false); setPacienteEditandoId(null); setNovoPaciente({nome:'', cpf:'', sexo:'Masculino', dataNascimento:'', idPesquisador:''}) }}>Cancelar</button>
                                     </div>
                                 </form>
+                            ) : (
+                                <form className="formCadastro" onSubmit={salvarConsulta}>
+                                    <h2>Realizar Nova Consulta</h2>
+                                    <div className="formGroup"><label>Paciente:</label><input type="text" value={pacientes.find(p => p.id.toString() === novaConsulta.idPaciente)?.nome || ''} disabled /></div>
+                                    <div className="formGroup">
+                                        <label>Sintomas Observados:</label>
+                                        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '8px'}}>
+                                            {sintomas.map(s => (
+                                                <label key={s.id} style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
+                                                    <input type="checkbox" checked={novaConsulta.sintomas.includes(s.id)} onChange={() => toggleSintoma(s.id)} />
+                                                    {s.nome}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="formGroup"><label>Tipo de Exame:</label><input type="text" value={novaConsulta.tipoExame} onChange={(e) => setNovaConsulta({...novaConsulta, tipoExame: e.target.value})} /></div>
+                                    <div className="formGroup"><label>Observações:</label><textarea value={novaConsulta.observacao} onChange={(e) => setNovaConsulta({...novaConsulta, observacao: e.target.value})} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', minHeight: '80px'}} /></div>
+                                    <div className="formActions">
+                                        <button type="submit" className="btnSave">Salvar</button>
+                                        <button type="button" className="btnCancel" onClick={() => { setMostrarFormConsulta(false); setNovaConsulta({idPaciente:'', tipoExame:'', observacao:'', sintomas:[]}) }}>Cancelar</button>
+                                    </div>
+                                </form>
                             )}
                             <div className="pacienteList">
                                 {filtrarItens(pacientes).map((p) => (
                                     <div className="pacienteCard" key={p.id}>
                                         <div className="pacienteInfo"><h3>{p.nome}</h3><p><strong>CPF:</strong> {aplicarMascaraCPF(p.cpf)}</p><p><strong>Pesquisador:</strong> {p.nomePesquisador || 'Não atribuído'}</p></div>
                                         <div className="pacienteActions">
+                                            <button className="btnEdit" style={{backgroundColor: '#4caf50', color: 'white', borderColor: '#388e3c'}} onClick={() => { setNovaConsulta({idPaciente: p.id.toString(), tipoExame: '', observacao: '', sintomas: []}); setMostrarFormConsulta(true); }}>Nova Consulta</button>
                                             <button className="btnEdit" onClick={() => { setPacienteEditandoId(p.id); setMostrarFormPaciente(true); setNovoPaciente({nome: p.nome, cpf: aplicarMascaraCPF(p.cpf), sexo: p.sexo, dataNascimento: p.dataNascimento || '', idPesquisador: p.idPesquisador || ''}) }}>Editar</button>
                                             <button className="btnDelete" onClick={() => excluirItem('/api/pacientes', p.id, buscarPacientes)}>Excluir</button>
                                         </div>
@@ -321,7 +382,38 @@ function Admin() {
 
                     {abaAtiva === 'consultas' && (
                         <div className="abaConsultas">
-                            <h1 className="adminTitle">Histórico de Consultas</h1>
+                            <h1 className="adminTitle">Histórico Geral de Consultas</h1>
+                            {!mostrarFormConsulta ? (
+                                <button className="btnAdd" onClick={() => setMostrarFormConsulta(true)}>+ Nova Consulta</button>
+                            ) : (
+                                <form className="formCadastro" onSubmit={salvarConsulta}>
+                                    <h2>{consultaEditandoId ? 'Editar Consulta' : 'Realizar Nova Consulta'}</h2>
+                                    <div className="formGroup">
+                                        <label>Paciente:</label>
+                                        <select value={novaConsulta.idPaciente} onChange={(e) => setNovaConsulta({...novaConsulta, idPaciente: e.target.value})} required disabled={consultaEditandoId !== null}>
+                                            <option value="">Selecione um paciente</option>
+                                            {pacientes.map(p => <option key={p.id} value={p.id}>{p.nome} ({aplicarMascaraCPF(p.cpf)})</option>)}
+                                        </select>
+                                    </div>
+                                    <div className="formGroup">
+                                        <label>Sintomas Observados:</label>
+                                        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '8px'}}>
+                                            {sintomas.map(s => (
+                                                <label key={s.id} style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer'}}>
+                                                    <input type="checkbox" checked={novaConsulta.sintomas.includes(s.id)} onChange={() => toggleSintoma(s.id)} />
+                                                    {s.nome}
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="formGroup"><label>Tipo de Exame:</label><input type="text" value={novaConsulta.tipoExame} onChange={(e) => setNovaConsulta({...novaConsulta, tipoExame: e.target.value})} /></div>
+                                    <div className="formGroup"><label>Observações:</label><textarea value={novaConsulta.observacao} onChange={(e) => setNovaConsulta({...novaConsulta, observacao: e.target.value})} style={{width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', minHeight: '80px'}} /></div>
+                                    <div className="formActions">
+                                        <button type="submit" className="btnSave">Salvar</button>
+                                        <button type="button" className="btnCancel" onClick={() => { setMostrarFormConsulta(false); setConsultaEditandoId(null); setNovaConsulta({idPaciente:'', tipoExame:'', observacao:'', sintomas:[]}) }}>Cancelar</button>
+                                    </div>
+                                </form>
+                            )}
                             <div className="consultaList">
                                 {filtrarItens(consultas).map((c) => (
                                     <div className="consultaCard" key={c.id}>
@@ -343,6 +435,19 @@ function Admin() {
                                                 <strong>Sintomas identificados:</strong> {c.sintomas}
                                             </div>
                                         )}
+                                        <div className="consultaActions" style={{marginTop: '20px', borderTop: '1px solid #eee', paddingTop: '15px', display: 'flex', gap: '15px', justifyContent: 'flex-end', width: '100%'}}>
+                                            <button className="btnEdit" onClick={() => { 
+                                                setConsultaEditandoId(c.id); 
+                                                setMostrarFormConsulta(true); 
+                                                setNovaConsulta({
+                                                    idPaciente: c.idPaciente.toString(), 
+                                                    tipoExame: c.tipoExame || '', 
+                                                    observacao: c.observacao || '', 
+                                                    sintomas: c.idsSintomas ? c.idsSintomas.split(',').map(Number) : []
+                                                }) 
+                                            }}>Editar</button>
+                                            <button className="btnDelete" onClick={() => excluirItem('/api/admin/consultas', c.id, buscarConsultas)}>Excluir</button>
+                                        </div>
                                     </div>
                                 ))}
                                 {filtrarItens(consultas).length === 0 && <p className="emptyMsg">Nenhuma consulta encontrada.</p>}

@@ -108,21 +108,104 @@ def register_admin_routes(app):
             result = execute_db("DELETE FROM sintoma WHERE id = %s", (id,))
             return jsonify(result)
 
-    @app.route('/api/admin/consultas', methods=['GET'])
-    def get_admin_consultas():
+    @app.route('/api/admin/consultas', methods=['GET', 'POST'])
+    def manage_admin_consultas():
         if session.get('permissao') != 'ADM':
             return jsonify({"message": "Não autorizado"}), 401
         
-        consultas = query_db("""
-            SELECT c.id, c.dataHora, c.tipoExame, c.resultadoExame, c.pontuacao, c.encaminhamento, c.observacao,
-                   p.nome as nomePaciente, u.nome as nomePesquisador,
-                   (SELECT GROUP_CONCAT(s.nome SEPARATOR ', ') 
-                    FROM consultasintoma cs 
-                    JOIN sintoma s ON cs.idSintoma = s.id 
-                    WHERE cs.idConsulta = c.id) as sintomas
-            FROM consulta c
-            JOIN paciente p ON c.idPaciente = p.id
-            JOIN usuario u ON p.idPesquisador = u.id
-            ORDER BY c.dataHora DESC
-        """)
-        return jsonify(consultas)
+        if request.method == 'GET':
+            consultas = query_db("""
+                SELECT c.id, c.dataHora, c.tipoExame, c.resultadoExame, c.pontuacao, c.encaminhamento, c.observacao,
+                       c.idPaciente, p.nome as nomePaciente, p.sexo as sexoPaciente, u.nome as nomePesquisador,
+                       (SELECT GROUP_CONCAT(s.id SEPARATOR ',') 
+                        FROM consultasintoma cs 
+                        JOIN sintoma s ON cs.idSintoma = s.id 
+                        WHERE cs.idConsulta = c.id) as idsSintomas,
+                       (SELECT GROUP_CONCAT(s.nome SEPARATOR ', ') 
+                        FROM consultasintoma cs 
+                        JOIN sintoma s ON cs.idSintoma = s.id 
+                        WHERE cs.idConsulta = c.id) as sintomas
+                FROM consulta c
+                JOIN paciente p ON c.idPaciente = p.id
+                JOIN usuario u ON p.idPesquisador = u.id
+                ORDER BY c.dataHora DESC
+            """)
+            return jsonify(consultas)
+
+        if request.method == 'POST':
+            data = request.get_json()
+            id_paciente = data['idPaciente']
+            sintomas_ids = data['sintomas']
+            tipo_exame = data.get('tipoExame', '')
+            observacao = data.get('observacao', '')
+
+            paciente = query_db("SELECT sexo, idPesquisador FROM paciente WHERE id = %s", (id_paciente,), one=True)
+            if not paciente:
+                return jsonify({"message": "Paciente não encontrado"}), 404
+
+            sintomas_data = query_db(f"SELECT pesoMasculino, pesoFeminino FROM sintoma WHERE id IN ({','.join(['%s']*len(sintomas_ids))})", tuple(sintomas_ids))
+            
+            score = 0
+            for s in sintomas_data:
+                if paciente['sexo'] == 'Masculino':
+                    score += float(s['pesoMasculino'] or 0)
+                else:
+                    score += float(s['pesoFeminino'] or 0)
+            score = round(score, 2)
+            
+            limite = 0.56 if paciente['sexo'] == 'Masculino' else 0.55
+            encaminhamento = "Encaminhar para teste genético confirmatório" if score >= limite else "Sem necessidade de encaminhamento"
+            resultado_exame = "Positivo" if score >= limite else "Negativo"
+
+            consulta_id = execute_db("""
+                INSERT INTO consulta (idPaciente, idPesquisador, dataHora, tipoExame, resultadoExame, pontuacao, encaminhamento, observacao)
+                VALUES (%s, %s, NOW(), %s, %s, %s, %s, %s)
+            """, (id_paciente, paciente['idPesquisador'], tipo_exame, resultado_exame, score, encaminhamento, observacao), return_lastrowid=True)
+
+            for s_id in sintomas_ids:
+                execute_db("INSERT INTO consultasintoma (idConsulta, idSintoma) VALUES (%s, %s)", (consulta_id, s_id))
+
+            return jsonify({"success": True, "id": consulta_id}), 201
+
+    @app.route('/api/admin/consultas/<int:id>', methods=['PUT', 'DELETE'])
+    def handle_admin_consulta(id):
+        if session.get('permissao') != 'ADM':
+            return jsonify({"message": "Não autorizado"}), 401
+
+        if request.method == 'PUT':
+            data = request.get_json()
+            id_paciente = data['idPaciente']
+            sintomas_ids = data['sintomas']
+            tipo_exame = data.get('tipoExame', '')
+            observacao = data.get('observacao', '')
+
+            paciente = query_db("SELECT sexo FROM paciente WHERE id = %s", (id_paciente,), one=True)
+            sintomas_data = query_db(f"SELECT pesoMasculino, pesoFeminino FROM sintoma WHERE id IN ({','.join(['%s']*len(sintomas_ids))})", tuple(sintomas_ids))
+            
+            score = 0
+            for s in sintomas_data:
+                if paciente['sexo'] == 'Masculino':
+                    score += float(s['pesoMasculino'] or 0)
+                else:
+                    score += float(s['pesoFeminino'] or 0)
+            score = round(score, 2)
+            
+            limite = 0.56 if paciente['sexo'] == 'Masculino' else 0.55
+            encaminhamento = "Encaminhar para teste genético confirmatório" if score >= limite else "Sem necessidade de encaminhamento"
+            resultado_exame = "Positivo" if score >= limite else "Negativo"
+
+            execute_db("""
+                UPDATE consulta SET idPaciente=%s, tipoExame=%s, resultadoExame=%s, pontuacao=%s, encaminhamento=%s, observacao=%s
+                WHERE id=%s
+            """, (id_paciente, tipo_exame, resultado_exame, score, encaminhamento, observacao, id))
+
+            execute_db("DELETE FROM consultasintoma WHERE idConsulta = %s", (id,))
+            for s_id in sintomas_ids:
+                execute_db("INSERT INTO consultasintoma (idConsulta, idSintoma) VALUES (%s, %s)", (id, s_id))
+
+            return jsonify({"success": True})
+
+        if request.method == 'DELETE':
+            execute_db("DELETE FROM consultasintoma WHERE idConsulta = %s", (id,))
+            execute_db("DELETE FROM consulta WHERE id = %s", (id,))
+            return jsonify({"success": True})
