@@ -3,6 +3,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 from io import BytesIO
+from datetime import datetime
 import os
 import textwrap
 import base64
@@ -217,7 +218,13 @@ def register_menu_routes(app):
             )
             return jsonify({"success": True}), 201
 
-        pacientes = query_db("""
+        sexo = request.args.get('sexo')
+        data_min = request.args.get('dataMin')
+        data_max = request.args.get('dataMax')
+        score_min = request.args.get('scoreMin')
+        score_max = request.args.get('scoreMax')
+
+        query = """
             SELECT
                 p.id,
                 p.nome,
@@ -236,8 +243,34 @@ def register_menu_routes(app):
                     WHERE idPaciente = p.id
                     ORDER BY dataHora DESC
                     LIMIT 1
-                ) WHERE p.idPesquisador = %s""", (user_id,))
-        
+                )
+            WHERE p.idPesquisador = %s
+        """
+
+        params = [user_id]
+
+        if sexo:
+            query += " AND p.sexo = %s"
+            params.append(sexo)
+
+        if data_min:
+            query += " AND p.dataNascimento >= %s"
+            params.append(data_min)
+
+        if data_max:
+            query += " AND p.dataNascimento <= %s"
+            params.append(data_max)
+
+        if score_min:
+            query += " AND c.pontuacao >= %s"
+            params.append(score_min)
+
+        if score_max:
+            query += " AND c.pontuacao <= %s"
+            params.append(score_max)
+
+        pacientes = query_db(query, tuple(params))
+
         return jsonify(pacientes or [])
 
     @app.route('/api/paciente_nova_consulta', methods=['POST'])
@@ -760,6 +793,42 @@ def register_menu_routes(app):
         if dadosEstatisticos is None:
             return jsonify({"error": "Erro ao buscar dados"}), 500
 
+        if not dadosEstatisticos:
+            total = 0
+            media = 0
+            maior = None
+            menor = None
+        else:
+            total = sum(
+                float(item.get('valor') or 0)
+                for item in dadosEstatisticos
+            )
+
+            maior = max(
+                dadosEstatisticos,
+                key=lambda x: float(x.get('valor') or 0)
+            )
+
+            menor = min(
+                dadosEstatisticos,
+                key=lambda x: float(x.get('valor') or 0)
+            )
+
+            porcentagem_maior = (
+                maior['valor'] / total * 100
+                if total > 0 else 0
+            )
+
+            media = total / len(dadosEstatisticos)
+
+            texto = (
+                f"A categoria '{maior['label']}' apresentou a maior "
+                f"representatividade da amostra, correspondendo a "
+                f"{porcentagem_maior:.1f}% dos registros analisados."
+            )
+
+            media = total / len(dadosEstatisticos)
+
         buffer = BytesIO()
         pdf = canvas.Canvas(buffer, pagesize=A4)
 
@@ -839,24 +908,95 @@ def register_menu_routes(app):
                 pdf.drawString(50, y, "Não foi possível incluir a imagem do gráfico.")
                 y -= 20
 
+        pdf.drawString(
+            50,
+            y,
+            f"Gerado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
+        )
+        y -= 20
+
+        pdf.drawString(
+            50,
+            y,
+            f"Organização: {organizacao.capitalize()}"
+        )
+        y -= 40
+
+        pdf.setFont("Helvetica-Bold", 12)
+        pdf.drawString(50, y, "Filtros Aplicados: " + filtrosTexto)
+        y -= 20
+
+        pdf.setFont("Helvetica-Bold", 12)
+        pdf.drawString(50, y, "-----")
+        y -= 20
+
         pdf.setFont("Helvetica-Bold", 14)
         pdf.drawString(50, y, "Dados do gráfico")
         y -= 24
         pdf.setFont("Helvetica", 12)
 
+        pdf.drawString(50, y, f"Total analisado: {total:.0f}")
+        y -= 20
+
+        pdf.drawString(50, y, f"Categorias encontradas: {len(dadosEstatisticos)}")
+        y -= 20
+
+        if maior and menor:
+            pdf.drawString(
+                50,
+                y,
+                f"Maior ocorrência: {maior['label']} ({maior['valor']})"
+            )
+            y -= 20
+
+            pdf.drawString(
+                50,
+                y,
+                f"Menor ocorrência: {menor['label']} ({menor['valor']})"
+            )
+            y -= 20
+        else:
+            pdf.drawString(
+                50,
+                y,
+                "Sem dados suficientes para cálculo de maior/menor ocorrência."
+            )
+            y -= 20
+
+        pdf.setFont("Helvetica-Bold", 12)
+        pdf.drawString(50, y, "-----")
+        y -= 20
+
+        pdf.setFont("Helvetica-Bold", 14)
+        pdf.drawString(50, y, "Análise")
+        y -= 24
+
+        pdf.setFont("Helvetica", 12)
+        y = wrap_text(y, texto)
+        
         if not dadosEstatisticos:
             pdf.drawString(50, y, "Nenhum dado disponível para os filtros selecionados.")
         else:
             for item in dadosEstatisticos:
                 label = item.get('label') or 'Sem rótulo'
-                valor = item.get('valor')
-                y = wrap_text(y, f"{label}: {valor}")
-                y -= 10
+                valor = float(item.get('valor') or 0)
+
+                porcentagem = (
+                    (valor / total) * 100
+                    if total > 0
+                    else 0
+                )
+
+                y = wrap_text(
+                    y,
+                    f"{label}: {valor:.0f} ({porcentagem:.1f}%)"
+                )
 
                 if y < 100:
                     pdf.showPage()
                     y = 800
-                    pdf.setFont("Helvetica", 12)
+
+                y -= 10
 
         pdf.save()
         buffer.seek(0)

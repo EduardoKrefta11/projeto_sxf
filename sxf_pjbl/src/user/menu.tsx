@@ -27,6 +27,11 @@ function Menu() {
     const [pacientes, setPacientes] = useState<any[]>([])
     const [pacientePFP, setPacientePFP] = useState<any>(null)
     const [mostrarFormPaciente, setMostrarFormPaciente] = useState(false)
+    const [pacienteSexo, setPacienteSexo] = useState('')
+    const [pacienteDataMin, setPacienteDataMin] = useState('')
+    const [pacienteDataMax, setPacienteDataMax] = useState('')
+    const [pacienteScoreMin, setPacienteScoreMin] = useState('')
+    const [pacienteScoreMax, setPacienteScoreMax] = useState('')
     const [novoPaciente, setNovoPaciente] = useState({ nome: '', cpf: '', sexo: 'Masculino', dataNascimento: '' })
     const [mostrarFormConsulta, setMostrarFormConsulta] = useState(false)
     const [idPacienteSelecionado, setIdPacienteSelecionado] = useState<number | null>(null)
@@ -120,6 +125,10 @@ function Menu() {
     }, [])
 
     useEffect(() => {
+        setErro('')
+    }, [pagina])
+
+    useEffect(() => {
         if (pagina === 'home') {
             fetch('/api/meu_perfil', {credentials: 'include'})
             .then((res) => {
@@ -135,22 +144,51 @@ function Menu() {
 
     useEffect(() => {
         if (pagina === 'paciente') {
-            fetch('/api/meus_pacientes', { credentials: 'include' })
-                .then((res) => {
-                    if (res.status === 401) throw new Error('Não autorizado')
-                    return res.json()
-                })
-                .then((data) => setPacientes(data))
-                .catch(() => setErro('Erro ao buscar pacientes'))
+            buscarPacientes()
         }
-    }, [pagina])
+    }, [
+        pagina,
+        pacienteSexo,
+        pacienteDataMin,
+        pacienteDataMax,
+        pacienteScoreMin,
+        pacienteScoreMax
+    ])  
+    
+    const buscarPacientes = async () => {
+        try {
+            const params = new URLSearchParams()
 
-    useEffect(() => {
-        if (pagina === 'estatisticas') {
-            setFiltrosAplicados(false)
-            setDadosEstatisticos(null)
+            if (pacienteSexo)
+                params.append('sexo', pacienteSexo)
+
+            if (pacienteDataMin)
+                params.append('dataMin', pacienteDataMin)
+
+            if (pacienteDataMax)
+                params.append('dataMax', pacienteDataMax)
+
+            if (pacienteScoreMin)
+                params.append('scoreMin', pacienteScoreMin)
+
+            if (pacienteScoreMax)
+                params.append('scoreMax', pacienteScoreMax)
+
+            const res = await fetch(
+                `/api/meus_pacientes?${params.toString()}`,
+                { credentials: 'include' }
+            )
+
+            if (res.status === 401)
+                throw new Error('Não autorizado')
+
+            const data = await res.json()
+            setPacientes(data)
+
+        } catch {
+            setErro('Erro ao buscar pacientes')
         }
-    }, [pagina])    
+    }
 
     const buscarSintomas = async () => {
         try {
@@ -406,6 +444,7 @@ function Menu() {
 
         const opcoes = {
             responsive: true,
+            mantainAspectRatio: false,
             plugins: {
                 legend: {
                     display: true,
@@ -507,7 +546,71 @@ function Menu() {
                                 Criar Paciente
                             </button>
                         </div>
+                        <div className="pacienteFiltros">
+                            <div className="formGroup">
+                                <label>Sexo</label>
+                                <select
+                                    value={pacienteSexo}
+                                    onChange={(e) => setPacienteSexo(e.target.value)}
+                                >
+                                    <option value="">Todos</option>
+                                    <option value="Masculino">Masculino</option>
+                                    <option value="Feminino">Feminino</option>
+                                </select>
+                            </div>
 
+                            <div className="formGroup">
+                                <label>Nascimento de</label>
+                                <input
+                                    type="date"
+                                    value={pacienteDataMin}
+                                    onChange={(e) => setPacienteDataMin(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="formGroup">
+                                <label>Até</label>
+                                <input
+                                    type="date"
+                                    value={pacienteDataMax}
+                                    onChange={(e) => setPacienteDataMax(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="formGroup">
+                                <label>Score mínimo</label>
+                                <input
+                                    type="number"
+                                    value={pacienteScoreMin}
+                                    onChange={(e) => setPacienteScoreMin(e.target.value)}
+                                />
+                            </div>
+
+                            <div className="formGroup">
+                                <label>Score máximo</label>
+                                <input
+                                    type="number"
+                                    value={pacienteScoreMax}
+                                    onChange={(e) => setPacienteScoreMax(e.target.value)}
+                                />
+                            </div>
+                            <div className="formGroup">
+                                <button
+                                    type="button"
+                                    className="btnCancel"
+                                    onClick={() => {
+                                        setPacienteSexo('')
+                                        setPacienteDataMin('')
+                                        setPacienteDataMax('')
+                                        setPacienteScoreMin('')
+                                        setPacienteScoreMax('')
+                                    }}
+                                >
+                                    Limpar
+                                </button>
+                            </div>
+                        </div>
+                        
                         {mostrarFormPaciente && (
                             <form className="pacienteForm" onSubmit={salvarPaciente}>
                                 <div className="formGroup">
@@ -711,7 +814,7 @@ function Menu() {
                                 </div>
 
                                 <div className="controlGroup">
-                                    <label>Sexo:</label>
+                                    <label>Sexo Biológico:</label>
 
                                     <select
                                         value={sexo}
