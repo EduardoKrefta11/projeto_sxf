@@ -3987,6 +3987,209 @@ Exemplo:
 Relatorio_Joao_Silva.pdf
 ```
 
+---
+
+## Banco de Dados do Sistema de Triagem e Acompanhamento de Pacientes
+
+O banco de dados foi projetado para um sistema de gerenciamento de pacientes, pesquisadores e consultas médicas, permitindo o cadastro de usuários, pacientes, sintomas e o registro de consultas realizadas. A estrutura utiliza o modelo relacional, com integridade referencial garantida por chaves estrangeiras.
+
+---
+
+# Tabela: `usuario`
+
+Responsável pelo armazenamento das informações de autenticação e identificação dos usuários do sistema.
+
+## Atributos
+
+| Campo          | Tipo                     | Descrição                            |
+| -------------- | ------------------------ | ------------------------------------ |
+| id             | INT                      | Identificador único do usuário       |
+| user           | VARCHAR(255)             | Nome de usuário utilizado para login |
+| nome           | VARCHAR(255)             | Nome completo do usuário             |
+| senha          | VARCHAR(255)             | Senha criptografada                  |
+| dataNascimento | DATE                     | Data de nascimento                   |
+| dataCriacao    | DATETIME                 | Data de criação do registro          |
+| permissao      | ENUM('ADM', 'COM')       | Nível de acesso                      |
+| fotoPerfil     | VARCHAR(255)             | Foto de perfil do usuário            |
+| status         | ENUM('Ativo', 'Inativo') | Situação da conta                    |
+
+## Restrições
+
+* `id` é chave primária.
+* `user` deve ser único.
+* Apenas os valores `ADM` e `COM` são permitidos para permissões.
+* Apenas os valores `Ativo` e `Inativo` são permitidos para status.
+
+---
+
+# Tabela: `paciente`
+
+Armazena os dados pessoais dos pacientes acompanhados pelo sistema.
+
+## Atributos
+
+| Campo          | Tipo                          | Descrição                         |
+| -------------- | ----------------------------- | --------------------------------- |
+| id             | INT                           | Identificador do paciente         |
+| idCriador      | INT                           | Usuário responsável pelo cadastro |
+| idPesquisador  | INT                           | Pesquisador responsável           |
+| nome           | VARCHAR(255)                  | Nome completo do paciente         |
+| cpf            | CHAR(11)                      | Documento de identificação        |
+| sexo           | ENUM('Masculino', 'Feminino') | Sexo biológico                    |
+| dataNascimento | DATE                          | Data de nascimento                |
+| ultimoTeste    | DATETIME                      | Data do último teste realizado    |
+| dataCriacao    | DATETIME                      | Data de criação do cadastro       |
+| fotoPerfil     | VARCHAR(255)                  | Foto de perfil do paciente        |
+
+## Restrições
+
+* `id` é chave primária.
+* `idCriador` referencia `usuario(id)`.
+* `idPesquisador` referencia `usuario(id)`.
+* Apenas os valores `Masculino` e `Feminino` são aceitos para sexo.
+
+---
+
+# Tabela: `sintoma`
+
+Armazena os sintomas avaliados durante as consultas e seus respectivos pesos utilizados nos cálculos de pontuação.
+
+## Atributos
+
+| Campo         | Tipo         | Descrição                               |
+| ------------- | ------------ | --------------------------------------- |
+| id            | INT          | Identificador do sintoma                |
+| nome          | VARCHAR(100) | Nome do sintoma                         |
+| pesoMasculino | DECIMAL(4,2) | Peso aplicado para pacientes masculinos |
+| pesoFeminino  | DECIMAL(4,2) | Peso aplicado para pacientes femininos  |
+
+## Restrições
+
+* `id` é chave primária.
+* `nome` deve ser único.
+
+## Exemplos de Sintomas
+
+* Deficiência intelectual
+* Face alongada/orelhas
+* Macroorquidismo
+* Hipermobilidade articular
+* Dificuldades de aprendizagem
+* Déficit de atenção
+* Atraso na fala
+* Hiperatividade
+
+---
+
+# Tabela: `consulta`
+
+Registra os atendimentos realizados aos pacientes, contendo resultados e observações.
+
+## Atributos
+
+| Campo          | Tipo         | Descrição                     |
+| -------------- | ------------ | ----------------------------- |
+| id             | INT          | Identificador da consulta     |
+| idPaciente     | INT          | Paciente avaliado             |
+| idPesquisador  | INT          | Responsável pela consulta     |
+| dataHora       | DATETIME     | Momento da consulta           |
+| tipoExame      | VARCHAR(100) | Tipo de avaliação realizada   |
+| resultadoExame | VARCHAR(50)  | Resultado obtido              |
+| pontuacao      | DECIMAL(4,2) | Índice calculado pelo sistema |
+| encaminhamento | VARCHAR(100) | Ação recomendada              |
+| observacao     | VARCHAR(500) | Observações complementares    |
+
+## Restrições
+
+* `id` é chave primária.
+* `idPaciente` referencia `paciente(id)`.
+* `idPesquisador` referencia `usuario(id)`.
+* Exclusão de pacientes remove automaticamente suas consultas (`ON DELETE CASCADE`).
+
+## Exemplos de Resultados
+
+* Positivo
+* Negativo
+
+## Exemplos de Encaminhamento
+
+* Fazer teste
+* Diagnóstico limpo
+
+---
+
+# Tabela: `consultasintoma`
+
+Tabela associativa responsável por representar o relacionamento muitos-para-muitos entre consultas e sintomas.
+
+## Atributos
+
+| Campo      | Tipo | Descrição            |
+| ---------- | ---- | -------------------- |
+| idConsulta | INT  | Consulta associada   |
+| idSintoma  | INT  | Sintoma identificado |
+
+## Restrições
+
+* Chave primária composta por (`idConsulta`, `idSintoma`).
+* `idConsulta` referencia `consulta(id)`.
+* `idSintoma` referencia `sintoma(id)`.
+
+## Finalidade
+
+Uma consulta pode possuir diversos sintomas associados, e um mesmo sintoma pode aparecer em diversas consultas.
+
+---
+
+# Relacionamentos
+
+## Usuário → Paciente
+
+* Um usuário pode cadastrar vários pacientes.
+* Um usuário pode ser responsável por vários pacientes.
+
+**Cardinalidade:** 1:N
+
+---
+
+## Usuário → Consulta
+
+* Um usuário (pesquisador) pode realizar várias consultas.
+
+**Cardinalidade:** 1:N
+
+---
+
+## Paciente → Consulta
+
+* Um paciente pode possuir várias consultas registradas.
+
+**Cardinalidade:** 1:N
+
+---
+
+## Consulta ↔ Sintoma
+
+* Uma consulta pode conter vários sintomas.
+* Um sintoma pode aparecer em várias consultas.
+
+**Cardinalidade:** N:N
+
+Implementada pela tabela intermediária `consultasintoma`.
+
+---
+
+# Resumo da Estrutura
+
+| Tabela          | Finalidade                                           |
+| --------------- | ---------------------------------------------------- |
+| usuario         | Controle de acesso e gerenciamento de usuários       |
+| paciente        | Cadastro e acompanhamento de pacientes               |
+| sintoma         | Catálogo de sintomas e pesos utilizados na avaliação |
+| consulta        | Registro dos atendimentos e resultados               |
+| consultasintoma | Associação entre consultas e sintomas identificados  |
+
+O modelo permite rastrear pacientes, registrar sintomas observados em consultas, calcular pontuações de avaliação e manter histórico completo dos atendimentos realizados pelos pesquisadores do sistema.
 
 
 
