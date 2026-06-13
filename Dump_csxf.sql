@@ -168,7 +168,7 @@ CREATE TABLE `usuario` (
 
 LOCK TABLES `usuario` WRITE;
 /*!40000 ALTER TABLE `usuario` DISABLE KEYS */;
-INSERT INTO `usuario` VALUES (1,'admin','Alice','$2b$12$Pq3/Qu7ScipMZ6X3QMHMqOQpxS6BT4mWpne3nGNDh2.LIc8XxBv7a','1970-12-31','2026-05-27 00:00:00','ADM',NULL,'Ativo'),(2,'comum','Bob','$2b$12$Pq3/Qu7ScipMZ6X3QMHMqOQpxS6BT4mWpne3nGNDh2.LIc8XxBv7a','2002-02-02','2026-05-27 00:00:00','COM',NULL,'Ativo'),(3,'Rogerio','Rogerinho Gameplays','$2b$12$PPd4gQNGRh/hfhIdOZ8dWuWGAjI3ZIfYvkQhrIU3j9YvIx5P8M6qC','1111-11-11','2026-06-13 08:42:24','COM',NULL,'Ativo');
+INSERT INTO `usuario` VALUES (1,'admin','Alice','$2b$12$Pq3/Qu7ScipMZ6X3QMHMqOQpxS6BT4mWpne3nGNDh2.LIc8XxBv7a','1970-12-31','2026-05-27 00:00:00','ADM',NULL,'Ativo'),(2,'comum','Bob','$2b$12$Pq3/Qu7ScipMZ6X3QMHMqOQpxS6BT4mWpne3nGNDh2.LIc8XxBv7a','2002-02-02','2026-05-27 00:00:00','COM',NULL,'Ativo'),(3,'Rogerio','Rogerinho','$2b$12$PPd4gQNGRh/hfhIdOZ8dWuWGAjI3ZIfYvkQhrIU3j9YvIx5P8M6qC','1111-11-11','2026-06-13 08:42:24','COM',NULL,'Ativo');
 /*!40000 ALTER TABLE `usuario` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

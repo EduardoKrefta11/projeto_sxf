@@ -19,7 +19,6 @@
 - [Métodos de Instalação](#métodos-de-instalação)
 - [Configuração Banco de Dados](#configuração-banco-de-dados)
 - [Endpoints Principais](#endpoints-principais)
-- [Versão](#versão)
 - [Equipe](#equipe)
 - [Licença](#licença)
 
@@ -28,6 +27,14 @@
 ## Sobre CSXF
 CSXF é um aplicativo Web desenvolvido com o objetivo de auxiliar pesquisadores da Síndrome da X Frágil a terem um ambiente eficiente, acessível e de baixo custo para o gerenciamento de dados e pacientes.
 Com uma interface simples e responsiva, buscamos fornecer a ferramenta de mais fácil uso para qualquer pessoa interessada na pesquisa da Síndrome.
+
+---
+
+## Vídeo Explicativo 
+
+![YouTube](https://img.shields.io/badge/YouTube-%23FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white)
+
+Link do Youtube: 
 
 ---
 
@@ -337,6 +344,8 @@ Existem dois perfis de acesso:
 | PUT/DELETE | /api/pacientes/<int:id>| Permite alterar os pacientes do sistema |
 | GET/POST | /api/sintomas| Permite visualizar e alterar os sintomas do sistema |
 | GET | /api/admin/consultas| Permite visualizar as consultas do sistema |
+| PUT/DELETE  | /api/admin/consultas/<int:id> | Permite visualizar e alterar as consultas do sistema |
+| GET | /api/admin/pdf/paciente/<int:paciente_id> | Permite gerar um relatório do paciente e de seu histórico de consultas |
 
 ---
 
@@ -354,4 +363,5 @@ Ano: 2026
 ---
 
 ## Licença
-### Educacional e não comercial
+
+Educacional e não comercial. Livre para ser baixado e alterado, contanto que os devidos créditos sejam dados.

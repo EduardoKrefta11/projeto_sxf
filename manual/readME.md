@@ -115,7 +115,11 @@ A página do usuário administrador. Aqui, o usuário tem a possibilidade de man
 
 ### Usuarios
 
+Ao logar, o usuário administrador é apresentado a página **Usuarios**, onde ele pode visualizar e editar todos os usuários existentes no banco.
+
 ![Usuarios Admin](admin_usuarios.png)
+
+Opcionalmente, ele pode criar um novo usuário clicando no botão designado:
 
 ![Novo Usuário Admin](admin_novo_usuario.png)
 
@@ -123,7 +127,13 @@ A página do usuário administrador. Aqui, o usuário tem a possibilidade de man
 
 ### Pacientes
 
+Clicando no botão **Pacientes** na interface superior redireciona o administrador a seção de 'Pacientes', onde ele pode:
+
+* Visualizar e editar a lista de pacientes existentes no banco
+
 ![Pacientes Admin](admin_pacientes.png)
+
+* Criar um novo paciente dentro do Banco
 
 ![Novo Paciente Admin](admin_novo_paciente.png)
 
@@ -131,7 +141,13 @@ A página do usuário administrador. Aqui, o usuário tem a possibilidade de man
 
 ### Sintomas
 
+Clicando no botão **Sintomas** na interface superior redireciona o administrador a seção de 'Sintomas', onde ele pode:
+
+* Visualizar e editar a lista de sintomas existentes no banco
+
 ![Sintomas Admin](admin_sintomas.png)
+
+* Adicionar um novo sintoma para o banco
 
 ![Novo Sintoma Admin](admin_novo_sintoma.png)
 
@@ -139,7 +155,13 @@ A página do usuário administrador. Aqui, o usuário tem a possibilidade de man
 
 ### Consultas
 
+Clicando no botão **Consultas** na interface superior redireciona o administrador a seção de 'Sintomas', onde ele pode:
+
+* Visualizar e editar a lista de consultas existentes no banco
+
 ![Consultas Admin](admin_consultas.png)
+
+* Adicionar uma nova consulta ao banco
 
 ![Nova Consulta Admin](admin_nova_consulta.png)
 
@@ -231,6 +253,12 @@ Funcionamento da função:
 
 ---
 
+#### Checagem de Status
+
+Para checar se o usuário está inativo ou não, o sistema usa o dado ```sql status``` para definir se o usuário está 'Ativo' ou 'Inativo'
+
+---
+
 #### Navegação
 
 A navegação é realizada através do hook `useNavigate()` do React Router.
@@ -243,8 +271,9 @@ Rotas utilizadas:
 | `/user`  | Área do usuário comum.          |
 |          |                                 |
 
+---
 
-### Página do Usuário (User.tsx)
+### Página do Usuário (User.tsx - User.css)
 
 O arquivo **User.tsx** é responsável pelas funcionalidades disponíveis para usuários comuns do sistema. Nesta página são realizadas operações relacionadas ao gerenciamento de pacientes, consultas, sintomas, perfil do usuário e visualização de estatísticas.
 
@@ -1431,8 +1460,358 @@ A instrução acima define o componente Menu como exportação padrão do arquiv
 
 ---
 
+### Administrador (admin.tsx - Admin.css)
 
-### Administrador (admin.tsx - admin.css)
+A página administrativa é responsável pelo gerenciamento completo dos dados do sistema.
+
+Nela o administrador possui acesso às operações de cadastro, edição, consulta e remoção dos principais registros do sistema, divididos em quatro módulos:
+
+| Módulo |
+|----------|
+| Usuários |
+| Pacientes |
+| Sintomas |
+| Consultas |
+
+Ao carregar a página, são buscados automaticamente todos os dados necessários para o funcionamento das abas administrativas.
+
+---
+
+## Estrutura Geral
+
+A interface é composta por um menu superior responsável pela navegação entre os módulos administrativos.
+
+### Menu Superior
+
+O menu permite alternar entre os diferentes módulos da aplicação.
+
+Opções disponíveis:
+
+| Botão |
+|---------|
+| Usuários |
+| Pacientes |
+| Sintomas |
+| Consultas |
+| Sair |
+
+Ao selecionar uma opção, o conteúdo principal da página é atualizado para exibir a aba correspondente.
+
+---
+
+## Sistema de Busca
+
+A página possui uma barra de pesquisa global utilizada para localizar registros rapidamente.
+
+A pesquisa é aplicada dinamicamente sobre os dados carregados na interface.
+
+Campos utilizados na busca:
+
+- Nome;
+- Nome de usuário;
+- CPF.
+
+---
+
+## Aba de Usuários
+
+Esta seção permite o gerenciamento dos usuários cadastrados no sistema.
+
+---
+
+### Estados Utilizados
+
+| Estado             | Finalidade                                              |
+| ------------------ | ------------------------------------------------------- |
+| usuarios           | Armazena a lista de usuários retornada pela API         |
+| mostrarFormUsuario | Controla a exibição do formulário de cadastro ou edição |
+| usuarioEditando    | Armazena o usuário atualmente selecionado para edição   |
+| novoUsuario        | Armazena os dados preenchidos no formulário             |
+
+
+---
+
+
+### Funcionalidades
+
+- Cadastrar usuários;
+- Editar usuários;
+- Alterar permissões;
+- Alterar status;
+- Desativar usuários;
+- Visualizar informações cadastrais.
+
+### Informações exibidas
+
+| Campo |
+|---------|
+| Nome |
+| Usuário |
+| Data de Nascimento |
+| Permissão |
+| Status |
+
+Usuários inativos permanecem cadastrados no sistema, porém ficam identificados visualmente através de seu status.
+
+### Cadastro de usuários
+
+Ao selecionar a opção de cadastro, é exibido um formulário contendo:
+
+| Campo |
+|---------|
+| Nome |
+| Usuário |
+| Senha |
+| Permissão |
+| Data de Nascimento |
+
+Após o envio, os dados são encaminhados para a API responsável pela criação do usuário.
+
+### Edição de usuários
+
+Durante a edição, os dados atuais do usuário são carregados automaticamente no formulário.
+
+Campos editáveis:
+
+| Campo |
+|---------|
+| Nome |
+| Usuário |
+| Senha |
+| Permissão |
+| Data de Nascimento |
+| Status |
+
+Ao salvar as alterações, os dados são enviados para atualização no Banco de Dados.
+
+---
+
+## Aba de Pacientes
+
+Esta seção permite ao administrador gerenciar todos os pacientes cadastrados.
+
+---
+
+### Estados Utilizados
+
+| Estado              | Finalidade                                               |
+| ------------------- | -------------------------------------------------------- |
+| pacientes           | Armazena todos os pacientes carregados                   |
+| mostrarFormPaciente | Controla a exibição do formulário de pacientes           |
+| pacienteEditando    | Armazena o paciente selecionado para edição              |
+| novoPaciente        | Armazena os dados preenchidos durante cadastro ou edição |
+| pesquisadores       | Lista de pesquisadores disponíveis para vinculação       |
+
+---
+
+### Funcionalidades
+
+- Cadastrar pacientes;
+- Editar pacientes;
+- Remover pacientes;
+- Visualizar pesquisador responsável;
+- Gerar relatórios clínicos.
+
+### Informações exibidas
+
+| Campo |
+|---------|
+| Nome |
+| CPF |
+| Sexo |
+| Data de Nascimento |
+| Pesquisador Responsável |
+
+### Cadastro de pacientes
+
+O formulário de cadastro contém:
+
+| Campo |
+|---------|
+| Nome |
+| CPF |
+| Sexo |
+| Data de Nascimento |
+| Pesquisador Responsável |
+
+O pesquisador selecionado será vinculado ao paciente durante a criação do registro.
+
+### Edição de pacientes
+
+Permite atualizar:
+
+| Campo |
+|---------|
+| Nome |
+| CPF |
+| Sexo |
+| Data de Nascimento |
+| Pesquisador Responsável |
+
+### Exclusão de pacientes
+
+A remoção exclui permanentemente o registro do paciente do Banco de Dados.
+
+### Geração de PDF
+
+O administrador pode gerar um relatório clínico completo de qualquer paciente.
+
+O documento inclui:
+
+- Dados cadastrais;
+- Histórico de consultas;
+- Resultados dos exames;
+- Sintomas registrados;
+- Encaminhamentos realizados.
+
+---
+
+## Aba de Sintomas
+
+Esta seção permite o gerenciamento dos sintomas utilizados no cálculo da pontuação clínica.
+
+---
+
+### Estados Utilizados
+
+| Estado             | Finalidade                                   |
+| ------------------ | -------------------------------------------- |
+| sintomas           | Lista contendo todos os sintomas cadastrados |
+| mostrarFormSintoma | Controla a exibição do formulário            |
+| sintomaEditando    | Armazena o sintoma selecionado para edição   |
+| novoSintoma        | Armazena os dados preenchidos no formulário  |
+
+---
+
+### Funcionalidades
+
+- Cadastrar sintomas;
+- Editar sintomas;
+- Remover sintomas.
+
+### Informações exibidas
+
+| Campo |
+|---------|
+| Nome |
+| Peso Masculino |
+| Peso Feminino |
+
+### Cadastro de sintomas
+
+O formulário solicita:
+
+| Campo |
+|---------|
+| Nome |
+| Peso Masculino |
+| Peso Feminino |
+
+Os pesos informados são utilizados posteriormente durante o cálculo das consultas.
+
+### Edição de sintomas
+
+Permite alterar:
+
+| Campo |
+|---------|
+| Nome |
+| Peso Masculino |
+| Peso Feminino |
+
+### Exclusão de sintomas
+
+Remove permanentemente o sintoma do sistema.
+
+---
+
+## Aba de Consultas
+
+Esta seção permite o gerenciamento administrativo de todas as consultas cadastradas.
+
+---
+
+### Estados Utilizados
+
+| Estado               | Finalidade                                       |
+| -------------------- | ------------------------------------------------ |
+| consultas            | Lista de consultas carregadas                    |
+| mostrarFormConsulta  | Controla a exibição do formulário                |
+| consultaEditando     | Armazena a consulta atualmente em edição         |
+| pacientes            | Lista de pacientes disponíveis para seleção      |
+| sintomas             | Lista de sintomas disponíveis                    |
+| sintomasSelecionados | Armazena os sintomas marcados durante o cadastro |
+| observacao           | Armazena observações clínicas informadas         |
+| tipoExame            | Armazena o tipo de exame informado               |
+
+---
+
+### Funcionalidades
+
+- Cadastrar consultas;
+- Editar consultas;
+- Remover consultas;
+- Visualizar histórico clínico.
+
+### Informações exibidas
+
+| Campo |
+|---------|
+| Paciente |
+| Pesquisador |
+| Data |
+| Tipo de Exame |
+| Resultado |
+| Pontuação |
+| Encaminhamento |
+| Sintomas |
+| Observações |
+
+### Cadastro de consultas
+
+Durante o cadastro são informados:
+
+| Campo |
+|---------|
+| Paciente |
+| Sintomas |
+| Tipo de Exame |
+| Observação |
+
+Após o envio:
+
+1. O sexo do paciente é identificado.
+2. Os sintomas selecionados são recuperados.
+3. A pontuação clínica é calculada.
+4. O resultado é definido automaticamente.
+5. O encaminhamento é gerado.
+6. A consulta é registrada no Banco de Dados.
+
+### Edição de consultas
+
+Ao editar uma consulta, o sistema:
+
+1. Recalcula a pontuação.
+2. Recalcula o resultado.
+3. Recalcula o encaminhamento.
+4. Atualiza os sintomas associados.
+
+### Exclusão de consultas
+
+Remove completamente a consulta e suas associações de sintomas.
+
+---
+
+## Logout
+
+O botão **Sair** encerra a sessão do administrador.
+
+Ao realizar logout:
+
+1. A sessão atual é encerrada no servidor.
+2. O usuário é redirecionado para a tela de login.
+
+---
 
 ## Backend
 
@@ -1653,7 +2032,7 @@ Após o logout, o usuário perde o acesso às rotas protegidas até realizar uma
 
 ---
 
-## Menu (Usuário Comum)
+### Menu (Usuário Comum)
 
 As funções e configurações da página denominada Menu são realizados dentro do arquivo **menu.py**. O módulo de usuário comum é implementado através da função `register_menu_routes(app)`, responsável por registrar todas as rotas utilizadas pelo pesquisador após realizar autenticação no sistema.
 
@@ -2660,4 +3039,954 @@ O relatório final pode conter:
 
 Essa funcionalidade permite exportar informações estatísticas do sistema para compartilhamento, arquivamento ou impressão.
 
+---
+
 ### Administrador (Usuário Administrador)
+
+As funções e configurações da página denominada Admin são realizados dentro do arquivo **admin_api.py**. O módulo de usuário administrador é implementado através da função register_admin_routes(app), responsável por registrar todas as rotas utilizadas pelo administrador após realizar autenticação no sistema.
+
+As funcionalidades da página incluem alterar ou visualizar todas as tabelas relativas ao sistema, incluindo: Criar, alterar e excluir usuários, pacientes, sintomas e consultas.
+
+---
+
+### Rota `/api/usuarios`
+
+Métodos: **GET** e **POST**
+
+Esta rota é responsável pelo gerenciamento de usuários do sistema, permitindo tanto a consulta dos usuários cadastrados quanto a criação de novos registros.
+
+---
+
+##### Controle de acesso
+
+Antes de executar qualquer operação, o sistema verifica se o usuário autenticado possui permissão administrativa.
+
+Caso contrário, a API retorna:
+
+```json
+{
+    "message": "Não autorizado"
+}
+```
+
+---
+
+##### Consulta de usuários
+
+Método: **GET**
+
+Retorna a lista de usuários cadastrados no sistema.
+
+Dados retornados:
+
+| Campo          |
+| -------------- |
+| id             |
+| user           |
+| nome           |
+| permissao      |
+| dataNascimento |
+| status         |
+
+Consulta utilizada:
+
+```sql
+SELECT
+    id,
+    user,
+    nome,
+    permissao,
+    dataNascimento,
+    status
+FROM usuario
+```
+
+---
+
+##### Cadastro de usuários
+
+Método: **POST**
+
+Permite a criação de novos usuários no sistema.
+
+Dados recebidos:
+
+| Campo          |
+| -------------- |
+| user           |
+| nome           |
+| senha          |
+| permissao      |
+| dataNascimento |
+
+Antes do armazenamento, a senha é protegida utilizando o algoritmo BCrypt.
+
+Fluxo de execução:
+
+1. Recebe os dados enviados pelo frontend.
+2. Realiza o hash da senha utilizando BCrypt.
+3. Insere o novo usuário no banco de dados.
+4. Define o status inicial como **Ativo**.
+5. Retorna confirmação de sucesso.
+
+Consulta utilizada:
+
+```sql
+INSERT INTO usuario
+(
+    user,
+    nome,
+    senha,
+    permissao,
+    dataNascimento,
+    status
+)
+VALUES
+(
+    %s,
+    %s,
+    %s,
+    %s,
+    %s,
+    'Ativo'
+)
+```
+
+Resposta de sucesso:
+
+```json
+{
+    "success": true
+}
+```
+
+---
+
+### Rota `/api/usuarios/<id>`
+
+Métodos: **PUT** e **DELETE**
+
+Esta rota é responsável pela atualização e inativação de usuários existentes.
+
+---
+
+##### Controle de acesso
+
+Apenas administradores podem acessar esta funcionalidade.
+
+Caso contrário:
+
+```json
+{
+    "message": "Não autorizado"
+}
+```
+
+---
+
+##### Atualização de usuário
+
+Método: **PUT**
+
+Permite alterar as informações de um usuário existente.
+
+Campos atualizáveis:
+
+| Campo          |
+| -------------- |
+| user           |
+| nome           |
+| senha          |
+| permissao      |
+| dataNascimento |
+| status         |
+
+Caso uma nova senha seja informada, ela é novamente criptografada utilizando BCrypt antes do armazenamento.
+
+Fluxo de execução:
+
+1. Recebe os dados enviados pelo frontend.
+2. Verifica se uma nova senha foi informada.
+3. Atualiza os dados do usuário.
+4. Retorna confirmação de sucesso.
+
+Resposta:
+
+```json
+{
+    "success": true
+}
+```
+
+---
+
+##### Inativação de usuário
+
+Método: **DELETE**
+
+Ao invés de remover permanentemente o registro, o sistema realiza uma exclusão lógica.
+
+Fluxo de execução:
+
+1. Localiza o usuário informado.
+2. Altera seu status para **Inativo**.
+3. Mantém o histórico armazenado no banco de dados.
+4. Retorna confirmação de sucesso.
+
+Consulta utilizada:
+
+```sql
+UPDATE usuario
+SET status = 'Inativo'
+WHERE id = %s
+```
+
+Resposta:
+
+```json
+{
+    "success": true
+}
+```
+
+---
+
+### Rota `/api/pacientes`
+
+Métodos: **GET** e **POST**
+
+Esta rota é responsável pelo gerenciamento administrativo dos pacientes cadastrados no sistema.
+
+Diferentemente da área de pesquisador, o administrador possui acesso a todos os pacientes cadastrados.
+
+---
+
+##### Controle de acesso
+
+A rota está disponível apenas para usuários com permissão administrativa.
+
+Caso contrário:
+
+```json
+{
+    "message": "Não autorizado"
+}
+```
+
+---
+
+##### Consulta de pacientes
+
+Método: **GET**
+
+Retorna todos os pacientes cadastrados no sistema juntamente com o pesquisador responsável.
+
+Dados retornados:
+
+| Campo           |
+| --------------- |
+| id              |
+| nome            |
+| cpf             |
+| sexo            |
+| dataNascimento  |
+| idPesquisador   |
+| fotoPerfil      |
+| nomePesquisador |
+
+Consulta utilizada:
+
+```sql
+SELECT
+    p.id,
+    p.nome,
+    p.cpf,
+    p.sexo,
+    p.dataNascimento,
+    p.idPesquisador,
+    p.fotoPerfil,
+    u.nome AS nomePesquisador
+FROM paciente p
+LEFT JOIN usuario u
+    ON p.idPesquisador = u.id
+```
+
+---
+
+##### Cadastro de pacientes
+
+Método: **POST**
+
+Permite que administradores realizem o cadastro direto de pacientes.
+
+Dados recebidos:
+
+| Campo          |
+| -------------- |
+| nome           |
+| cpf            |
+| sexo           |
+| dataNascimento |
+| idPesquisador  |
+
+Fluxo de execução:
+
+1. Recebe os dados enviados pelo frontend.
+2. Registra o paciente no banco de dados.
+3. Associa o paciente ao pesquisador informado.
+4. Armazena o identificador do administrador responsável pela criação.
+5. Retorna confirmação de sucesso.
+
+Consulta utilizada:
+
+```sql
+INSERT INTO paciente
+(
+    nome,
+    cpf,
+    sexo,
+    dataNascimento,
+    idPesquisador,
+    idCriador
+)
+VALUES
+(
+    %s,
+    %s,
+    %s,
+    %s,
+    %s,
+    %s
+)
+```
+
+Resposta:
+
+```json
+{
+    "success": true
+}
+```
+
+---
+
+### Rota `/api/pacientes/<id>`
+
+Métodos: **PUT** e **DELETE**
+
+Esta rota é responsável pela atualização e remoção de pacientes.
+
+---
+
+##### Atualização de pacientes
+
+Método: **PUT**
+
+Permite alterar informações cadastrais de pacientes existentes.
+
+Campos atualizáveis:
+
+| Campo          |
+| -------------- |
+| nome           |
+| cpf            |
+| sexo           |
+| dataNascimento |
+| idPesquisador  |
+
+Fluxo de execução:
+
+1. Recebe os novos dados.
+2. Atualiza o registro correspondente.
+3. Retorna confirmação de sucesso.
+
+Consulta utilizada:
+
+```sql
+UPDATE paciente
+SET
+    nome = %s,
+    cpf = %s,
+    sexo = %s,
+    dataNascimento = %s,
+    idPesquisador = %s
+WHERE id = %s
+```
+
+---
+
+##### Remoção de pacientes
+
+Método: **DELETE**
+
+Remove permanentemente um paciente do banco de dados.
+
+Fluxo de execução:
+
+1. Localiza o paciente informado.
+2. Remove o registro.
+3. Retorna confirmação de sucesso.
+
+Consulta utilizada:
+
+```sql
+DELETE FROM paciente
+WHERE id = %s
+```
+
+Resposta:
+
+```json
+{
+    "success": true
+}
+```
+
+---
+
+### Rota `/api/sintomas`
+
+Métodos: **GET** e **POST**
+
+Esta rota é responsável pelo gerenciamento dos sintomas cadastrados no sistema.
+
+Os sintomas são utilizados durante a realização das consultas para compor o cálculo da pontuação clínica dos pacientes.
+
+---
+
+##### Controle de acesso
+
+Antes de executar qualquer operação, o sistema verifica se o usuário autenticado possui permissão administrativa.
+
+Caso contrário, a API retorna:
+
+```json
+{
+    "message": "Não autorizado"
+}
+```
+
+---
+
+##### Consulta de sintomas
+
+Método: **GET**
+
+Retorna todos os sintomas cadastrados no sistema.
+
+Dados retornados:
+
+| Campo         |
+| ------------- |
+| id            |
+| nome          |
+| pesoMasculino |
+| pesoFeminino  |
+
+Consulta utilizada:
+
+```sql
+SELECT
+    id,
+    nome,
+    pesoMasculino,
+    pesoFeminino
+FROM sintoma
+```
+
+---
+
+##### Cadastro de sintomas
+
+Método: **POST**
+
+Permite cadastrar novos sintomas utilizados pelo sistema.
+
+Dados recebidos:
+
+| Campo         |
+| ------------- |
+| nome          |
+| pesoMasculino |
+| pesoFeminino  |
+
+Os pesos cadastrados são posteriormente utilizados para o cálculo da pontuação clínica dos pacientes.
+
+Consulta utilizada:
+
+```sql
+INSERT INTO sintoma
+(
+    nome,
+    pesoMasculino,
+    pesoFeminino
+)
+VALUES
+(
+    %s,
+    %s,
+    %s
+)
+```
+
+Resposta:
+
+```json
+{
+    "success": true
+}
+```
+
+---
+
+### Rota `/api/sintomas/<id>`
+
+Métodos: **PUT** e **DELETE**
+
+Esta rota é responsável pela atualização e remoção de sintomas.
+
+---
+
+##### Atualização de sintomas
+
+Método: **PUT**
+
+Permite alterar informações de um sintoma já existente.
+
+Campos atualizáveis:
+
+| Campo         |
+| ------------- |
+| nome          |
+| pesoMasculino |
+| pesoFeminino  |
+
+Consulta utilizada:
+
+```sql
+UPDATE sintoma
+SET
+    nome = %s,
+    pesoMasculino = %s,
+    pesoFeminino = %s
+WHERE id = %s
+```
+
+Resposta:
+
+```json
+{
+    "success": true
+}
+```
+
+---
+
+##### Remoção de sintomas
+
+Método: **DELETE**
+
+Remove permanentemente um sintoma do banco de dados.
+
+Consulta utilizada:
+
+```sql
+DELETE FROM sintoma
+WHERE id = %s
+```
+
+Resposta:
+
+```json
+{
+    "success": true
+}
+```
+
+---
+
+### Rota `/api/admin/consultas`
+
+Métodos: **GET** e **POST**
+
+Esta rota é responsável pelo gerenciamento administrativo das consultas realizadas pelos pacientes.
+
+Além de permitir a consulta dos registros existentes, também executa o cálculo da pontuação clínica e gera automaticamente o resultado da avaliação.
+
+---
+
+##### Controle de acesso
+
+Apenas usuários com permissão administrativa podem acessar esta funcionalidade.
+
+Caso contrário:
+
+```json
+{
+    "message": "Não autorizado"
+}
+```
+
+---
+
+##### Consulta de consultas
+
+Método: **GET**
+
+Retorna todas as consultas cadastradas no sistema.
+
+Dados retornados:
+
+| Campo           |
+| --------------- |
+| id              |
+| dataHora        |
+| tipoExame       |
+| resultadoExame  |
+| pontuacao       |
+| encaminhamento  |
+| observacao      |
+| nomePaciente    |
+| nomePesquisador |
+| idPaciente      |
+| idsSintomas     |
+| sintomas        |
+
+Os registros são retornados em ordem decrescente de data, exibindo primeiro as consultas mais recentes.
+
+---
+
+##### Cadastro de consultas
+
+Método: **POST**
+
+Permite registrar uma nova consulta para um paciente.
+
+Dados recebidos:
+
+| Campo      |
+| ---------- |
+| idPaciente |
+| sintomas   |
+| tipoExame  |
+| observacao |
+
+---
+
+##### Validação do paciente
+
+Inicialmente o sistema verifica se o paciente informado existe.
+
+Consulta utilizada:
+
+```sql
+SELECT sexo
+FROM paciente
+WHERE id = %s
+```
+
+Caso o paciente não seja encontrado:
+
+```json
+{
+    "message": "Paciente não encontrado"
+}
+```
+
+---
+
+##### Cálculo da pontuação clínica
+
+Após recuperar o sexo do paciente, o sistema consulta todos os sintomas selecionados.
+
+Consulta utilizada:
+
+```sql
+SELECT
+    id,
+    pesoMasculino,
+    pesoFeminino
+FROM sintoma
+WHERE id IN (...)
+```
+
+Para cada sintoma selecionado:
+
+* Pacientes masculinos utilizam o campo `pesoMasculino`;
+* Pacientes femininos utilizam o campo `pesoFeminino`.
+
+Todos os pesos são somados para formar a pontuação final da consulta.
+
+---
+
+##### Definição do resultado
+
+Após calcular a pontuação, o sistema define automaticamente:
+
+| Condição    | Resultado |
+| ----------- | --------- |
+| Score ≥ 3.0 | Positivo  |
+| Score < 3.0 | Negativo  |
+
+Também é gerado automaticamente o encaminhamento clínico:
+
+| Condição    | Encaminhamento                               |
+| ----------- | -------------------------------------------- |
+| Score ≥ 3.0 | Encaminhar para teste genético confirmatório |
+| Score < 3.0 | Monitorar sintomas e reavaliar em 6 meses    |
+
+---
+
+##### Registro da consulta
+
+A consulta é armazenada na tabela `consulta`.
+
+Consulta utilizada:
+
+```sql
+INSERT INTO consulta
+(
+    idPaciente,
+    dataHora,
+    tipoExame,
+    resultadoExame,
+    pontuacao,
+    encaminhamento,
+    observacao
+)
+VALUES
+(
+    %s,
+    NOW(),
+    %s,
+    %s,
+    %s,
+    %s,
+    %s
+)
+```
+
+---
+
+##### Associação dos sintomas
+
+Após criar a consulta, os sintomas selecionados são armazenados na tabela intermediária `consultasintoma`.
+
+Consulta utilizada:
+
+```sql
+INSERT INTO consultasintoma
+(
+    idConsulta,
+    idSintoma
+)
+VALUES
+(
+    %s,
+    %s
+)
+```
+
+Resposta:
+
+```json
+{
+    "success": true
+}
+```
+
+---
+
+### Rota `/api/admin/consultas/<id>`
+
+Métodos: **PUT** e **DELETE**
+
+Esta rota é responsável pela atualização e remoção de consultas existentes.
+
+---
+
+##### Atualização de consultas
+
+Método: **PUT**
+
+O processo de atualização segue a mesma lógica utilizada no cadastro de consultas.
+
+Fluxo executado:
+
+1. Recupera o sexo do paciente.
+2. Busca os sintomas selecionados.
+3. Recalcula a pontuação.
+4. Recalcula resultado e encaminhamento.
+5. Atualiza os dados da consulta.
+6. Remove as associações anteriores de sintomas.
+7. Insere novamente os sintomas selecionados.
+
+Consulta principal utilizada:
+
+```sql
+UPDATE consulta
+SET
+    tipoExame = %s,
+    resultadoExame = %s,
+    pontuacao = %s,
+    encaminhamento = %s,
+    observacao = %s
+WHERE id = %s
+```
+
+Antes da reinserção dos sintomas, os vínculos existentes são removidos:
+
+```sql
+DELETE FROM consultasintoma
+WHERE idConsulta = %s
+```
+
+Resposta:
+
+```json
+{
+    "success": true
+}
+```
+
+---
+
+##### Remoção de consultas
+
+Método: **DELETE**
+
+Remove completamente uma consulta do sistema.
+
+Fluxo:
+
+1. Remove as associações da tabela `consultasintoma`.
+2. Remove o registro principal da tabela `consulta`.
+
+Consultas utilizadas:
+
+```sql
+DELETE FROM consultasintoma
+WHERE idConsulta = %s
+```
+
+```sql
+DELETE FROM consulta
+WHERE id = %s
+```
+
+Resposta:
+
+```json
+{
+    "success": true
+}
+```
+
+---
+
+### Rota `/api/admin/pdf/paciente/<paciente_id>`
+
+Método: **GET**
+
+Esta rota é responsável pela geração do relatório clínico completo de um paciente em formato PDF.
+
+O documento reúne informações cadastrais do paciente, foto de perfil e todo o histórico de consultas registradas.
+
+---
+
+##### Controle de acesso
+
+Apenas administradores possuem acesso à geração deste relatório.
+
+Caso contrário:
+
+```json
+{
+    "error": "Não autorizado"
+}
+```
+
+---
+
+##### Busca dos dados do paciente
+
+Inicialmente o sistema recupera as informações cadastrais do paciente.
+
+Dados obtidos:
+
+| Campo          |
+| -------------- |
+| nome           |
+| sexo           |
+| dataNascimento |
+| ultimoTeste    |
+| dataCriacao    |
+| fotoPerfil     |
+
+Caso o paciente não seja encontrado:
+
+```json
+{
+    "error": "Paciente não encontrado"
+}
+```
+
+---
+
+##### Busca do histórico de consultas
+
+Após localizar o paciente, todas as consultas associadas são recuperadas.
+
+Dados incluídos:
+
+| Campo          |
+| -------------- |
+| dataHora       |
+| tipoExame      |
+| resultadoExame |
+| pontuacao      |
+| encaminhamento |
+| observacao     |
+| sintomas       |
+
+As consultas são organizadas cronologicamente.
+
+---
+
+##### Estrutura do relatório
+
+O PDF gerado contém:
+
+* Logotipo institucional;
+* Informações cadastrais do paciente;
+* Foto de perfil;
+* Histórico completo de consultas;
+* Resultado dos exames;
+* Pontuação clínica;
+* Encaminhamento recomendado;
+* Observações registradas;
+* Sintomas associados a cada consulta.
+
+---
+
+##### Geração do arquivo
+
+O documento é gerado utilizando a biblioteca **ReportLab**.
+
+Ao final do processamento, o arquivo é enviado diretamente ao navegador para download.
+
+Formato de saída:
+
+```text
+Relatorio_<NomePaciente>.pdf
+```
+
+Exemplo:
+
+```text
+Relatorio_Joao_Silva.pdf
+```
+
+
+
+
