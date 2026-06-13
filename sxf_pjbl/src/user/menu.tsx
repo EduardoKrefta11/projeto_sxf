@@ -209,6 +209,16 @@ function Menu() {
     const salvarConsulta = async (e: React.FormEvent) => {
         e.preventDefault()
 
+        if (sintomasSelecionados.length === 0) {
+            setErro('Selecione pelo menos um sintoma')
+            return
+        }
+
+        if (!tipoExame.trim()) {
+            setErro('Informe o tipo de exame')
+            return
+        }
+
         try {
             const res = await fetch('/api/paciente_nova_consulta', {
                 method: 'POST',
@@ -226,14 +236,10 @@ function Menu() {
                 throw new Error('Erro ao salvar consulta')
             }
 
-            if (sintomasSelecionados.length === 0) {
-                setErro('Selecione pelo menos um sintoma')
-                return
-            }
-
             setMostrarFormConsulta(false)
             setSintomasSelecionados([])
             setObservacao('')
+            setErro('')
 
         } catch (err) {
             setErro('Erro ao salvar consulta')
@@ -473,7 +479,7 @@ function Menu() {
                 <MenuButton texto="Pacientes" onClick={() => setPagina('paciente')}/>
                 <MenuButton texto="Estatisticas" onClick={() => setPagina('estatisticas')}/>
                 <MenuButton texto="Sair" onClick={logout}/>
-            </div>'
+            </div>
 
             <div className={pagina}>
 
@@ -548,7 +554,7 @@ function Menu() {
                         </div>
                         <div className="pacienteFiltros">
                             <div className="formGroup">
-                                <label>Sexo</label>
+                                <label>Sexo Biológico</label>
                                 <select
                                     value={pacienteSexo}
                                     onChange={(e) => setPacienteSexo(e.target.value)}
@@ -632,7 +638,7 @@ function Menu() {
                                     />
                                 </div>
                                 <div className="formGroup">
-                                    <label>Sexo</label>
+                                    <label>Sexo Biológico</label>
                                     <select
                                         value={novoPaciente.sexo}
                                         onChange={(e) => setNovoPaciente({ ...novoPaciente, sexo: e.target.value })}
@@ -807,7 +813,7 @@ function Menu() {
                                             setFiltrosAplicados(false)
                                         }}
                                     >
-                                        <option value="genero">Gênero</option>
+                                        <option value="genero">Sexo Biológico</option>
                                         <option value="sintoma">Sintoma</option>
                                         <option value="peso">Peso médio</option>
                                     </select>

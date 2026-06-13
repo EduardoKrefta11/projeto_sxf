@@ -1,5 +1,10 @@
 # Manual de Instruções de Uso
 
+- [Instruções para uso Comum](#instruções-para-uso-comum)
+- [Instruções para manutenção ou alteração de código](#instruções-para-manutenção-ou-alteração-do-código)
+- [Menu (Usuário Comum)](#menu_(usuário_comum))
+- [Administrador (Usuário Administrador)](#administrador-usuário-administrador)
+
 ## Instruções para uso comum
 
 ---
@@ -152,9 +157,1280 @@ Abaixo estão datalhados todos os detalhes acerca do código usado tanto no Fron
 
 ## Frontend
 
-### Login (App.tsx - App.css)
+### Página de Login (App.tsx - App.css)
 
-### Pesquisador (Menu.tsx - Menu.css)
+O arquivo **App.tsx** é responsável pela autenticação inicial dos usuários do sistema. A página apresenta um formulário de login onde o usuário informa suas credenciais para acessar a plataforma.
+
+Em seu código são utilizados três estados principais:
+
+| Estado    | Finalidade                                                      |
+| --------- | --------------------------------------------------------------- |
+| `user`    | Armazena o nome de usuário informado no formulário.             |
+| `senha`   | Armazena a senha digitada pelo usuário.                         |
+| `message` | Exibe mensagens de retorno da autenticação ou erros de conexão. |
+
+---
+
+#### Formulário de Login
+
+A interface é composta por:
+
+* Campo de nome de usuário.
+* Campo de senha.
+* Botão de autenticação.
+* Área para exibição de mensagens de retorno.
+
+Os campos são controlados através do React utilizando `useState`, garantindo sincronização entre os valores digitados e o estado da aplicação.
+
+---
+
+#### Função preventReload(e)
+
+A função **preventReload()** é executada quando o formulário é submetido.
+
+Seu principal objetivo é impedir o recarregamento da página e realizar a autenticação do usuário junto ao servidor.
+
+Ela recebe como parâmetro:
+
+| Parâmetro | Finalidade                         |
+| --------- | ---------------------------------- |
+| `e`       | Evento de submissão do formulário. |
+
+Funcionamento da função:
+
+1. Interrompe o comportamento padrão do formulário através de `e.preventDefault()`.
+2. Envia uma requisição HTTP `POST` para a rota `/api/login`.
+3. Encaminha para a API:
+
+   * Nome de usuário;
+   * Senha.
+4. Aguarda a resposta do servidor.
+5. Atualiza a mensagem exibida ao usuário com o conteúdo retornado pela API.
+6. Verifica se a autenticação foi realizada com sucesso.
+7. Caso autenticado:
+
+   * Usuários administradores (`ADM`) são redirecionados para `/admin`;
+   * Usuários comuns são redirecionados para `/user`.
+8. Caso ocorra falha de comunicação com o servidor, uma mensagem de erro é exibida ao usuário.
+
+---
+
+#### Fluxo de Autenticação
+
+1. Usuário acessa a tela de login.
+2. Informa nome de usuário e senha.
+3. Pressiona o botão **Logar**.
+4. O formulário dispara a função `preventReload()`.
+5. Uma requisição é enviada para `/api/login`.
+6. O backend valida as credenciais.
+7. O sistema recebe a resposta:
+
+   * Sucesso → redirecionamento para a área correspondente.
+   * Falha → mensagem de erro exibida.
+8. A sessão é mantida através de cookies utilizando `credentials: 'include'`.
+
+---
+
+#### Navegação
+
+A navegação é realizada através do hook `useNavigate()` do React Router.
+
+Rotas utilizadas:
+
+| Rota     | Finalidade                      |
+| -------- | ------------------------------- |
+| `/admin` | Área administrativa do sistema. |
+| `/user`  | Área do usuário comum.          |
+|          |                                 |
+
+
+### Página do Usuário (User.tsx)
+
+O arquivo **User.tsx** é responsável pelas funcionalidades disponíveis para usuários comuns do sistema. Nesta página são realizadas operações relacionadas ao gerenciamento de pacientes, consultas, sintomas, perfil do usuário e visualização de estatísticas.
+
+---
+
+#### Bibliotecas Utilizadas
+
+| Biblioteca         | Finalidade                                                |
+| ------------------ | --------------------------------------------------------- |
+| `react`            | Gerenciamento de estados e ciclo de vida dos componentes. |
+| `react-router-dom` | Navegação entre páginas da aplicação.                     |
+| `chart.js`         | Criação e configuração dos gráficos estatísticos.         |
+| `react-chartjs-2`  | Integração dos gráficos Chart.js com React.               |
+
+Antes da utilização dos gráficos, os componentes necessários do Chart.js são registrados através do método `ChartJS.register()`, permitindo a renderização dos diferentes tipos de gráficos utilizados pelo sistema.
+
+---
+
+#### Componente Auxiliar: MenuButton
+
+O componente **MenuButton** é responsável pela criação dos botões de navegação da interface superior.
+
+Ele recebe dois parâmetros:
+
+| Parâmetro | Finalidade                           |
+| --------- | ------------------------------------ |
+| `texto`   | Texto exibido no botão.              |
+| `onClick` | Função executada ao clicar no botão. |
+
+Esse componente é utilizado para padronizar a aparência e o comportamento dos botões de navegação da interface.
+
+---
+
+#### Estados Relacionados à Navegação
+
+| Estado   | Finalidade                                           |
+| -------- | ---------------------------------------------------- |
+| `pagina` | Controla qual seção da aplicação está sendo exibida. |
+| `erro`   | Armazena mensagens de erro exibidas ao usuário.      |
+
+---
+
+#### Estados Relacionados ao Perfil
+
+| Estado    | Finalidade                                          |
+| --------- | --------------------------------------------------- |
+| `perfil`  | Armazena os dados do perfil do usuário autenticado. |
+| `userPFP` | Armazena a foto de perfil do usuário.               |
+
+---
+
+#### Estados Relacionados aos Pacientes
+
+| Estado                | Finalidade                                                  |
+| --------------------- | ----------------------------------------------------------- |
+| `pacientes`           | Lista de pacientes cadastrados.                             |
+| `pacientePFP`         | Foto associada ao paciente selecionado.                     |
+| `mostrarFormPaciente` | Controla a exibição do formulário de cadastro de pacientes. |
+| `pacienteSexo`        | Filtro de sexo dos pacientes.                               |
+| `pacienteDataMin`     | Data mínima utilizada nos filtros de pesquisa.              |
+| `pacienteDataMax`     | Data máxima utilizada nos filtros de pesquisa.              |
+| `pacienteScoreMin`    | Pontuação mínima utilizada nos filtros.                     |
+| `pacienteScoreMax`    | Pontuação máxima utilizada nos filtros.                     |
+| `novoPaciente`        | Armazena os dados do paciente que será cadastrado.          |
+
+O objeto `novoPaciente` contém:
+
+| Campo            | Finalidade                      |
+| ---------------- | ------------------------------- |
+| `nome`           | Nome completo do paciente.      |
+| `cpf`            | CPF do paciente.                |
+| `sexo`           | Sexo informado no cadastro.     |
+| `dataNascimento` | Data de nascimento do paciente. |
+
+---
+
+#### Estados Relacionados às Consultas
+
+| Estado                  | Finalidade                                          |
+| ----------------------- | --------------------------------------------------- |
+| `mostrarFormConsulta`   | Controla a exibição do formulário de consultas.     |
+| `idPacienteSelecionado` | Identifica o paciente selecionado para atendimento. |
+| `sintomasSelecionados`  | Lista dos sintomas associados à consulta.           |
+| `observacao`            | Observações registradas durante a consulta.         |
+| `tipoExame`             | Tipo de exame solicitado para o paciente.           |
+
+---
+
+#### Estados Relacionados às Estatísticas
+
+| Estado                   | Finalidade                                                    |
+| ------------------------ | ------------------------------------------------------------- |
+| `tipoGrafico`            | Define o tipo de gráfico exibido.                             |
+| `organizacao`            | Define o agrupamento utilizado nas estatísticas.              |
+| `sintomasBuscados`       | Lista de sintomas utilizados nos filtros estatísticos.        |
+| `sintoma`                | Sintoma selecionado para pesquisa.                            |
+| `pontuacaoMin`           | Pontuação mínima utilizada nos filtros.                       |
+| `pontuacaoMax`           | Pontuação máxima utilizada nos filtros.                       |
+| `sexo`                   | Filtro de sexo aplicado às estatísticas.                      |
+| `nascimentoMin`          | Data mínima de nascimento utilizada nos filtros.              |
+| `nascimentoMax`          | Data máxima de nascimento utilizada nos filtros.              |
+| `dadosEstatisticos`      | Dados retornados pela API para geração dos gráficos.          |
+| `carregandoEstatisticas` | Indica se uma consulta estatística está em andamento.         |
+| `filtrosAplicados`       | Indica se filtros já foram aplicados na pesquisa estatística. |
+
+A variável `dadosEstatisticos` armazena:
+
+| Campo     | Finalidade                                |
+| --------- | ----------------------------------------- |
+| `labels`  | Rótulos exibidos nos gráficos.            |
+| `valores` | Valores numéricos associados aos rótulos. |
+
+---
+
+#### Referências (useRef)
+
+| Referência | Finalidade|
+|------------|-----------|
+| graficoRef | Referência direta ao gráfico renderizado, permitindo operações como exportação, atualização ou captura da imagem gerada.
+
+---
+
+#### Funções de Formatação
+
+O sistema possui funções auxiliares responsáveis por converter datas armazenadas pelo backend para um formato amigável ao usuário.
+
+##### formatarData(dataString)
+
+A função **formatarData()** recebe uma data e a converte para o padrão brasileiro (`dd/mm/aaaa`).
+
+Funcionamento:
+
+1. Verifica se a data foi informada.
+2. Caso a data esteja vazia, retorna `"-"`.
+3. Converte a string para um objeto `Date`.
+4. Retorna a data formatada utilizando o padrão brasileiro.
+
+Essa função é utilizada principalmente na exibição de informações cadastrais dos pacientes.
+
+---
+
+##### formatarDataHora(dataString)
+
+A função **formatarDataHora()** realiza a conversão de uma data contendo horário para o formato brasileiro.
+
+Funcionamento:
+
+1. Verifica se a data foi informada.
+2. Caso esteja vazia, retorna `"-"`.
+3. Converte a string recebida para um objeto `Date`.
+4. Retorna a data e hora formatadas utilizando o padrão brasileiro.
+
+Essa função é utilizada principalmente na exibição do histórico de consultas e registros realizados pelo sistema.
+
+---
+
+#### Envio de Foto de Perfil do Usuário
+
+##### enviarFotoPerfil()
+
+A função **enviarFotoPerfil()** é responsável por realizar o upload da foto de perfil do usuário autenticado.
+
+Fluxo de execução:
+
+1. Verifica se um arquivo foi selecionado.
+2. Caso nenhum arquivo tenha sido escolhido, exibe uma mensagem de alerta.
+3. Cria um objeto `FormData`.
+4. Adiciona a imagem selecionada ao formulário.
+5. Envia uma requisição `POST` para a rota `/api/user_pfp`.
+6. A imagem é processada e armazenada pelo backend.
+7. A resposta retornada pela API é recebida pelo frontend.
+
+A comunicação é realizada utilizando `multipart/form-data`, formato adequado para transferência de arquivos.
+
+---
+
+#### Envio de Foto de Paciente
+
+##### enviarPacienteFoto(paciente)
+
+A função **enviarPacienteFoto()** é responsável por realizar o upload da foto associada a um paciente.
+
+Parâmetros:
+
+| Parâmetro  | Finalidade                                        |
+| ---------- | ------------------------------------------------- |
+| `paciente` | Objeto contendo os dados do paciente selecionado. |
+
+Fluxo de execução:
+
+1. Verifica se uma imagem foi selecionada.
+2. Caso não exista arquivo selecionado, exibe um alerta ao usuário.
+3. Cria um objeto `FormData`.
+4. Adiciona:
+
+   * A foto do paciente;
+   * O identificador do paciente.
+5. Envia uma requisição `POST` para a rota `/api/paciente_pfp`.
+6. O backend associa a imagem ao paciente correspondente.
+7. A resposta da API é recebida pelo frontend.
+
+---
+
+#### Hooks de Inicialização (useEffect)
+
+O componente utiliza diversos hooks `useEffect()` para automatizar carregamentos de dados e atualizações da interface.
+
+---
+
+##### Carregamento Inicial de Sintomas
+
+```text
+Dependências: []
+```
+
+Executado apenas uma vez durante a montagem do componente.
+
+Fluxo:
+
+1. O componente é carregado.
+2. A função `buscarSintomas()` é executada.
+3. A lista de sintomas disponível no sistema é carregada para utilização em consultas e filtros.
+
+---
+
+##### Limpeza de Mensagens de Erro
+
+```text
+Dependências: [pagina]
+```
+
+Executado sempre que o usuário navega entre as páginas internas do sistema.
+
+Fluxo:
+
+1. O valor de `pagina` é alterado.
+2. A mensagem armazenada em `erro` é limpa.
+3. A nova tela é exibida sem mensagens antigas.
+
+---
+
+##### Carregamento do Perfil do Usuário
+
+```text
+Dependências: [pagina]
+```
+
+Executado sempre que a seção atual corresponde à página inicial (`home`).
+
+Fluxo:
+
+1. O usuário acessa a página inicial.
+2. Uma requisição é enviada para `/api/meu_perfil`.
+3. O backend valida a sessão do usuário.
+4. Os dados do perfil são retornados.
+5. O estado `perfil` é atualizado.
+6. Em caso de falha ou sessão inválida, uma mensagem de erro é exibida.
+
+---
+
+##### Atualização Automática da Lista de Pacientes
+
+```text
+Dependências:
+[
+    pagina,
+    pacienteSexo,
+    pacienteDataMin,
+    pacienteDataMax,
+    pacienteScoreMin,
+    pacienteScoreMax
+]
+```
+
+Executado sempre que algum filtro relacionado aos pacientes é alterado.
+
+Fluxo:
+
+1. O usuário acessa a seção de pacientes.
+2. O sistema verifica alterações nos filtros.
+3. A função `buscarPacientes()` é executada.
+4. Uma nova consulta é enviada ao backend.
+5. A lista de pacientes é atualizada automaticamente de acordo com os critérios selecionados.
+
+Esse mecanismo garante que a listagem permaneça sincronizada com os filtros aplicados sem necessidade de atualização manual.
+
+---
+
+#### Gerenciamento de Pacientes
+
+##### buscarPacientes()
+
+A função **buscarPacientes()** é responsável por consultar todos os pacientes vinculados ao usuário autenticado.
+
+Antes da consulta, a função monta dinamicamente os filtros selecionados pelo usuário através do objeto `URLSearchParams`.
+
+Filtros suportados:
+
+| Filtro     | Finalidade                    |
+| ---------- | ----------------------------- |
+| `sexo`     | Filtrar pacientes por sexo.   |
+| `dataMin`  | Data mínima de nascimento.    |
+| `dataMax`  | Data máxima de nascimento.    |
+| `scoreMin` | Pontuação mínima do paciente. |
+| `scoreMax` | Pontuação máxima do paciente. |
+
+Fluxo de execução:
+
+1. Cria um objeto de parâmetros da URL.
+2. Adiciona os filtros preenchidos pelo usuário.
+3. Envia uma requisição para `/api/meus_pacientes`.
+4. O backend processa os filtros recebidos.
+5. A lista de pacientes é retornada.
+6. O estado `pacientes` é atualizado.
+7. Em caso de erro, uma mensagem é exibida ao usuário.
+
+---
+
+#### Gerenciamento de Sintomas
+
+##### buscarSintomas()
+
+A função **buscarSintomas()** é responsável por obter a lista completa de sintomas cadastrados no sistema.
+
+Fluxo de execução:
+
+1. Envia uma requisição para `/api/buscar_sintomas`.
+2. O backend retorna todos os sintomas disponíveis.
+3. Os dados recebidos são armazenados em `sintomasBuscados`.
+4. Esses dados passam a ser utilizados pelos formulários e filtros da aplicação.
+5. Em caso de erro, uma mensagem é exibida ao usuário.
+
+Essa função é executada automaticamente durante a inicialização do componente.
+
+---
+
+#### Registro de Consultas
+
+##### salvarConsulta(e)
+
+A função **salvarConsulta()** é responsável por registrar uma nova consulta para um paciente. Ela previne que o usuário cadastre um usuário sem marcar nenhum sintoma ou sem tipo de exame.
+
+Parâmetros:
+
+| Parâmetro | Finalidade                         |
+| --------- | ---------------------------------- |
+| `e`       | Evento de submissão do formulário. |
+
+Dados enviados para a API:
+
+| Campo        | Finalidade                                     |
+| ------------ | ---------------------------------------------- |
+| `idPaciente` | Identificador do paciente atendido.            |
+| `sintomas`   | Lista de sintomas selecionados.                |
+| `observacao` | Observações registradas durante o atendimento. |
+| `tipoExame`  | Tipo de exame solicitado.                      |
+
+Fluxo de execução:
+
+1. Impede o recarregamento da página.
+2. Envia uma requisição `POST` para `/api/paciente_nova_consulta`.
+3. O backend registra a consulta.
+4. O sistema valida se ao menos um sintoma foi selecionado.
+5. Em caso de sucesso:
+
+   * O formulário é fechado;
+   * A lista de sintomas selecionados é limpa;
+   * O campo de observações é reiniciado.
+6. Em caso de erro, uma mensagem é exibida ao usuário.
+
+O objetivo dessa função é centralizar o processo de criação de consultas médicas associadas aos pacientes cadastrados.
+
+---
+
+#### Construção de Parâmetros Estatísticos
+
+##### montarParametrosEstatisticas(opcoes)
+
+A função **montarParametrosEstatisticas()** é responsável por construir os filtros utilizados pelas consultas estatísticas do sistema.
+
+Ela centraliza a criação dos parâmetros enviados para as rotas relacionadas aos gráficos e relatórios.
+
+Filtros suportados:
+
+| Filtro          | Finalidade                                           |
+| --------------- | ---------------------------------------------------- |
+| `organizacao`   | Define o agrupamento dos dados.                      |
+| `sexo`          | Filtra registros por sexo.                           |
+| `nascimentoMin` | Define a data mínima de nascimento.                  |
+| `nascimentoMax` | Define a data máxima de nascimento.                  |
+| `sintoma`       | Filtra registros associados a um sintoma específico. |
+| `pontuacaoMin`  | Define a pontuação mínima.                           |
+| `pontuacaoMax`  | Define a pontuação máxima.                           |
+| `tipoGrafico`   | Define o formato de visualização dos dados.          |
+
+Fluxo de execução:
+
+1. Cria um objeto `URLSearchParams`.
+2. Adiciona os filtros preenchidos pelo usuário.
+3. Verifica se o tipo de gráfico deve ser incluído.
+4. Retorna o conjunto de parâmetros formatados para utilização nas requisições.
+
+Essa abordagem evita duplicação de código nas operações estatísticas.
+
+---
+
+#### Carregamento de Estatísticas
+
+##### carregarEstatisticas()
+
+A função **carregarEstatisticas()** é responsável por obter os dados estatísticos utilizados na geração dos gráficos do sistema.
+
+Fluxo de execução:
+
+1. Ativa o indicador de carregamento.
+2. Remove mensagens de erro anteriores.
+3. Gera os parâmetros de pesquisa através da função `montarParametrosEstatisticas()`.
+4. Envia uma requisição para `/api/stats`.
+5. O backend processa os filtros recebidos.
+6. Os dados estatísticos são retornados.
+7. O estado `dadosEstatisticos` é atualizado.
+8. O gráfico é renderizado utilizando os novos dados.
+9. Ao término da operação, o indicador de carregamento é desativado.
+10. Em caso de erro, uma mensagem é exibida ao usuário.
+
+---
+
+#### Fluxo de Geração de Estatísticas
+
+1. O usuário acessa a seção de estatísticas.
+2. Seleciona os filtros desejados.
+3. Escolhe a forma de organização dos dados.
+4. Solicita a geração dos resultados.
+5. O frontend monta os parâmetros da consulta.
+6. A API processa os filtros informados.
+7. Os dados consolidados são retornados.
+8. O sistema atualiza o estado `dadosEstatisticos`.
+9. Os gráficos são renderizados utilizando Chart.js.
+
+---
+
+#### Utilitários de Cadastro
+
+##### aplicarMascaraCPF(valor)
+
+A função **aplicarMascaraCPF()** é responsável por formatar automaticamente o CPF informado pelo usuário durante o cadastro de pacientes.
+
+Formato aplicado:
+
+```text
+000.000.000-00
+```
+
+Fluxo de execução:
+
+1. Remove caracteres que não sejam números.
+2. Insere automaticamente os pontos de separação.
+3. Insere o hífen antes dos dois últimos dígitos.
+4. Limita o tamanho máximo para 14 caracteres.
+5. Retorna o CPF formatado para exibição.
+
+Essa função é utilizada apenas para melhorar a experiência do usuário durante o preenchimento dos formulários.
+
+---
+
+#### Cadastro de Pacientes
+
+##### salvarPaciente(e)
+
+A função **salvarPaciente()** é responsável pelo cadastro de novos pacientes vinculados ao usuário autenticado.
+
+Parâmetros:
+
+| Parâmetro | Finalidade                         |
+| --------- | ---------------------------------- |
+| `e`       | Evento de submissão do formulário. |
+
+Fluxo de execução:
+
+1. Impede o recarregamento da página.
+2. Limpa mensagens de erro anteriores.
+3. Remove a formatação do CPF antes do envio.
+4. Cria um objeto contendo os dados do paciente.
+5. Envia uma requisição `POST` para `/api/meus_pacientes`.
+6. O backend registra o novo paciente.
+7. Em caso de sucesso:
+
+   * O formulário é fechado;
+   * Os campos são reinicializados;
+   * A lista de pacientes é atualizada automaticamente.
+8. Em caso de erro, uma mensagem é exibida ao usuário.
+
+---
+
+#### Aplicação de Filtros Estatísticos
+
+##### aplicarFiltros()
+
+A função **aplicarFiltros()** é responsável por iniciar uma nova consulta estatística utilizando os filtros selecionados pelo usuário.
+
+Fluxo de execução:
+
+1. Marca que filtros foram aplicados.
+2. Remove resultados estatísticos anteriores.
+3. Executa a função `carregarEstatisticas()`.
+4. Atualiza os gráficos com os novos dados retornados pela API.
+
+Essa função atua como ponto de entrada para a geração das estatísticas.
+
+---
+
+#### Captura de Imagem do Gráfico
+
+##### obterImagemGrafico()
+
+A função **obterImagemGrafico()** é responsável por converter o gráfico exibido em uma imagem no formato Base64.
+
+Fluxo de execução:
+
+1. Obtém a referência do gráfico através de `graficoRef`.
+2. Verifica se o gráfico está disponível.
+3. Executa o método `toBase64Image()`.
+4. Retorna a imagem gerada.
+5. Caso o gráfico não exista, retorna `null`.
+
+Essa imagem é posteriormente utilizada na geração dos relatórios em PDF.
+
+---
+
+#### Geração de Relatórios Estatísticos
+
+##### gerarRelatorioEstatistico()
+
+A função **gerarRelatorioEstatistico()** é responsável pela criação e download do relatório estatístico em formato PDF.
+
+Dados enviados para geração do relatório:
+
+| Campo                 | Finalidade                       |
+| --------------------- | -------------------------------- |
+| `sexo`                | Filtro de sexo aplicado.         |
+| `nascimentoMin`       | Data mínima de nascimento.       |
+| `nascimentoMax`       | Data máxima de nascimento.       |
+| `sintoma`             | Sintoma utilizado no filtro.     |
+| `pontuacaoMin`        | Pontuação mínima.                |
+| `pontuacaoMax`        | Pontuação máxima.                |
+| `organizacao`         | Tipo de agrupamento estatístico. |
+| `tipoGrafico`         | Formato de gráfico selecionado.  |
+| `imagemGraficoBase64` | Imagem do gráfico gerado.        |
+
+Fluxo de execução:
+
+1. Captura a imagem do gráfico exibido.
+2. Monta o objeto contendo filtros e configurações.
+3. Envia uma requisição `POST` para `/api/pdf/stats`.
+4. O backend gera o relatório PDF.
+5. O arquivo é retornado ao navegador.
+6. O frontend cria um link temporário.
+7. O download é iniciado automaticamente.
+8. Os recursos temporários são removidos da memória.
+
+Em caso de falha, uma mensagem de erro é exibida ao usuário.
+
+---
+
+#### Encerramento de Sessão
+
+##### logout()
+
+A função **logout()** é responsável por finalizar a sessão do usuário.
+
+Fluxo de execução:
+
+1. Envia uma requisição `POST` para `/api/logout`.
+2. O backend invalida a sessão atual.
+3. O usuário é redirecionado para a tela de login.
+4. Caso ocorra algum erro, ele é registrado no console da aplicação.
+
+---
+
+#### Renderização de Gráficos
+
+##### obterGrafico()
+
+A função **obterGrafico()** é responsável por gerar dinamicamente o gráfico estatístico de acordo com a opção selecionada pelo usuário.
+
+Antes da renderização, a função monta duas estruturas principais:
+
+##### Configuração dos Dados
+
+O objeto `chartConfig` contém:
+
+| Campo             | Finalidade                                          |
+| ----------------- | --------------------------------------------------- |
+| `labels`          | Rótulos exibidos no gráfico.                        |
+| `datasets`        | Conjunto de dados estatísticos retornados pela API. |
+| `backgroundColor` | Cores utilizadas na visualização.                   |
+| `borderColor`     | Cores das bordas dos elementos gráficos.            |
+
+##### Configuração de Exibição
+
+O objeto `opcoes` define características visuais do gráfico:
+
+| Configuração | Finalidade                              |
+| ------------ | --------------------------------------- |
+| `responsive` | Ajusta o gráfico ao tamanho disponível. |
+| `legend`     | Exibe a legenda dos dados apresentados. |
+
+---
+
+##### Tipos de Gráfico Disponíveis
+
+| Tipo      | Componente Utilizado                                        |
+| --------- | ----------------------------------------------------------- |
+| `colunas` | Gráfico de colunas verticais (`Bar`).                       |
+| `linhas`  | Gráfico de linhas (`Line`).                                 |
+| `pizza`   | Gráfico de setores (`Pie`).                                 |
+| `barras`  | Gráfico de barras horizontais (`Bar` com `indexAxis: 'y'`). |
+
+---
+
+#### Fluxo de Geração de Relatórios Estatísticos
+
+1. O usuário seleciona os filtros desejados.
+2. O sistema gera os dados estatísticos.
+3. O gráfico é renderizado na interface.
+4. O usuário solicita a geração do relatório.
+5. O gráfico é convertido para imagem.
+6. Os filtros e a imagem são enviados ao backend.
+7. O PDF é gerado.
+8. O arquivo é disponibilizado para download automático.
+
+Esse fluxo garante que o relatório exportado contenha exatamente as mesmas informações apresentadas na interface do sistema.
+
+
+---
+
+### Estrutura da Interface
+
+A interface principal da página é organizada em duas áreas:
+
+1. **Interface Superior de Navegação**
+2. **Área de Conteúdo Dinâmico**
+
+O conteúdo exibido é controlado pelo estado `pagina`, permitindo alternar entre as diferentes funcionalidades disponíveis para o usuário.
+
+---
+
+#### Menu Superior
+
+O menu superior é composto por botões de navegação construídos através do componente `MenuButton`.
+
+| Botão        | Ação                                         |
+| ------------ | -------------------------------------------- |
+| Home         | Exibe as informações do perfil do usuário.   |
+| Pacientes    | Exibe a área de gerenciamento de pacientes.  |
+| Estatísticas | Exibe os gráficos e relatórios estatísticos. |
+| Sair         | Finaliza a sessão do usuário.                |
+
+Fluxo de navegação:
+
+1. O usuário seleciona uma opção do menu.
+2. O estado `pagina` é atualizado.
+3. O React realiza uma nova renderização.
+4. O conteúdo correspondente é exibido na tela.
+
+---
+
+### Seção Home
+
+A seção **Home** é responsável pela exibição dos dados do usuário autenticado.
+
+Essa tela é exibida quando:
+
+```text
+pagina === 'home'
+```
+
+---
+
+#### Exibição do Perfil
+
+Ao acessar a página inicial, os dados armazenados no estado `perfil` são apresentados ao usuário.
+
+Caso os dados ainda estejam sendo carregados, o sistema exibe a mensagem:
+
+```text
+Carregando perfil...
+```
+
+Após o carregamento, um cartão de perfil é renderizado contendo as informações da conta.
+
+---
+
+#### Foto de Perfil
+
+A foto do usuário é exibida através do componente de imagem.
+
+Funcionamento:
+
+1. O sistema verifica se existe uma foto cadastrada.
+2. Caso exista, a imagem armazenada no servidor é exibida.
+3. Caso contrário, é utilizada a imagem padrão definida em `defaultPFP`.
+
+Fluxo:
+
+1. Usuário acessa a página Home.
+2. O sistema consulta os dados do perfil.
+3. A foto cadastrada é carregada.
+4. Caso não exista foto, uma imagem padrão é apresentada.
+
+---
+
+#### Alteração de Foto de Perfil
+
+O sistema permite que o usuário altere sua foto de perfil diretamente pela interface.
+
+Fluxo de atualização:
+
+1. O usuário clica no botão de edição representado pelo ícone 📷.
+2. O seletor de arquivos do navegador é aberto.
+3. Uma imagem é selecionada.
+4. O arquivo é armazenado no estado `userPFP`.
+5. O usuário pressiona o botão **Salvar foto**.
+6. A função `enviarFotoPerfil()` é executada.
+7. O arquivo é enviado ao backend.
+8. A nova foto passa a ser utilizada pelo sistema.
+
+---
+
+#### Informações Exibidas
+
+O cartão de perfil apresenta os seguintes dados:
+
+| Informação               | Origem                  |
+| ------------------------ | ----------------------- |
+| Nome                     | `perfil.nome`           |
+| Nome de usuário          | `perfil.user`           |
+| Data de nascimento       | `perfil.dataNascimento` |
+| Data de criação da conta | `perfil.dataCriacao`    |
+
+As datas são formatadas utilizando as funções auxiliares:
+
+| Função               | Utilização              |
+| -------------------- | ----------------------- |
+| `formatarData()`     | Datas simples.          |
+| `formatarDataHora()` | Datas contendo horário. |
+
+---
+
+#### Fluxo da Página Inicial
+
+1. O usuário acessa a área Home.
+2. O sistema executa a consulta do perfil.
+3. Os dados retornados são armazenados em `perfil`.
+4. O cartão de perfil é renderizado.
+5. O usuário pode:
+
+   * Visualizar suas informações;
+   * Alterar sua foto de perfil;
+   * Consultar dados da conta.
+6. Caso ocorra algum erro durante o carregamento, a mensagem armazenada em `erro` é exibida na interface.
+
+---
+
+### Seção de Pacientes
+
+A seção **Pacientes** concentra todas as funcionalidades relacionadas ao gerenciamento de pacientes cadastrados pelo usuário.
+
+Essa tela é exibida quando:
+
+```text
+pagina === 'paciente'
+```
+
+As principais funcionalidades disponíveis são:
+
+* Consulta de pacientes cadastrados.
+* Aplicação de filtros de pesquisa.
+* Cadastro de novos pacientes.
+* Registro de consultas.
+* Upload de foto do paciente.
+* Emissão de relatório individual em PDF.
+
+---
+
+#### Filtros de Pesquisa
+
+A interface disponibiliza filtros que permitem localizar pacientes específicos.
+
+Filtros disponíveis:
+
+| Filtro        | Finalidade                         |
+| ------------- | ---------------------------------- |
+| Sexo Biológico| Filtrar pacientes por gênero.      |
+| Nascimento de | Definir data mínima de nascimento. |
+| Até           | Definir data máxima de nascimento. |
+| Score mínimo  | Filtrar por pontuação mínima.      |
+| Score máximo  | Filtrar por pontuação máxima.      |
+
+Sempre que um filtro é alterado, a função `buscarPacientes()` é executada automaticamente, atualizando a listagem exibida.
+
+---
+
+#### Limpeza de Filtros
+
+O botão **Limpar** permite remover todos os filtros ativos.
+
+Fluxo:
+
+1. Remove o filtro de sexo.
+2. Remove os limites de data de nascimento.
+3. Remove os filtros de pontuação.
+4. A lista de pacientes é atualizada automaticamente.
+
+---
+
+### Cadastro de Pacientes
+
+O sistema permite o registro de novos pacientes através do botão **Criar Paciente**.
+
+Ao ser acionado, o estado `mostrarFormPaciente` é alterado, tornando visível o formulário de cadastro.
+
+---
+
+#### Dados Cadastrais
+
+Informações solicitadas:
+
+| Campo              | Finalidade                      |
+| ------------------ | ------------------------------- |
+| Nome               | Nome completo do paciente.      |
+| CPF                | Documento de identificação.     |
+| Sexo Biológico     | Sexo do paciente.               |
+| Data de Nascimento | Data de nascimento do paciente. |
+
+Durante o preenchimento do CPF, a função `aplicarMascaraCPF()` realiza a formatação automática dos dados.
+
+---
+
+#### Fluxo de Cadastro
+
+1. O usuário clica em **Criar Paciente**.
+2. O formulário é exibido.
+3. Os dados são preenchidos.
+4. O botão **Salvar** executa a função `salvarPaciente()`.
+5. O backend registra o paciente.
+6. A listagem é atualizada automaticamente.
+7. O formulário é ocultado.
+
+Caso o usuário pressione **Cancelar**, os campos são limpos e o formulário é fechado.
+
+---
+
+### Registro de Consultas
+
+A criação de consultas é realizada individualmente para cada paciente.
+
+Ao selecionar **Nova Consulta**, o sistema:
+
+1. Armazena o identificador do paciente.
+2. Abre o formulário de consulta.
+3. Limpa sintomas previamente selecionados.
+4. Limpa observações anteriores.
+5. Limpa informações de exames.
+
+---
+
+#### Formulário de Consulta
+
+O formulário permite registrar informações clínicas relacionadas ao atendimento.
+
+Campos disponíveis:
+
+| Campo         | Finalidade                                 |
+| ------------- | ------------------------------------------ |
+| Sintomas      | Lista de sintomas associados ao paciente.  |
+| Tipo de Exame | Exames solicitados durante a consulta.     |
+| Observação    | Observações registradas pelo profissional. |
+
+---
+
+#### Seleção de Sintomas
+
+Os sintomas são carregados através da função `buscarSintomas()`.
+
+Cada sintoma é apresentado como uma caixa de seleção (*checkbox*).
+
+Fluxo:
+
+1. O usuário seleciona um sintoma.
+2. O identificador é adicionado à lista `sintomasSelecionados`.
+3. Caso o sintoma seja desmarcado, ele é removido da lista.
+4. A seleção final é enviada ao backend durante o salvamento da consulta.
+
+---
+
+#### Fluxo de Registro de Consulta
+
+1. O usuário seleciona um paciente.
+2. Pressiona **Nova Consulta**.
+3. Escolhe os sintomas observados.
+4. Informa exames necessários.
+5. Registra observações clínicas.
+6. Pressiona **Salvar**.
+7. A função `salvarConsulta()` é executada.
+8. Os dados são enviados ao backend.
+9. A consulta é registrada no Banco de Dados.
+
+---
+
+### Exibição da Lista de Pacientes
+
+Após o carregamento dos dados, os pacientes são apresentados em formato de cartões.
+
+Caso nenhum registro seja encontrado, o sistema exibe:
+
+```text
+Nenhum paciente encontrado.
+```
+
+---
+
+#### Informações Exibidas por Paciente
+
+Cada cartão apresenta:
+
+| Informação             | Origem           |
+| ---------------------- | ---------------- |
+| Foto do paciente       | `fotoPerfil`     |
+| Nome                   | `nome`           |
+| Sexo Biológico         | `sexo`           |
+| Data de nascimento     | `dataNascimento` |
+| Último teste realizado | `ultimoTeste`    |
+| Data de cadastro       | `dataCriacao`    |
+| Score do paciente      | `pontuacao`      |
+| Encaminhamento         | `encaminhamento` |
+
+As datas são formatadas utilizando:
+
+* `formatarData()`
+* `formatarDataHora()`
+
+---
+
+### Foto do Paciente
+
+Cada paciente possui uma foto individual armazenada pelo sistema.
+
+Fluxo de atualização:
+
+1. O usuário seleciona o ícone 📷.
+2. Uma imagem é escolhida.
+3. O arquivo é armazenado em `pacientePFP`.
+4. O botão **Salvar foto** executa `enviarPacienteFoto()`.
+5. A imagem é enviada ao backend.
+6. O cadastro do paciente é atualizado.
+
+Caso não exista foto cadastrada, a imagem padrão (`defaultPFP`) é utilizada.
+
+---
+
+### Emissão de Relatório Individual
+
+Cada paciente possui um botão **Gerar PDF**.
+
+Ao ser acionado:
+
+1. Uma nova aba é aberta.
+2. A rota `/api/pdf/paciente/{id}` é acessada.
+3. O backend gera o relatório individual.
+4. O documento PDF é disponibilizado ao usuário.
+
+O relatório contém as informações consolidadas do paciente e seu histórico registrado no sistema.
+
+---
+
+### Fluxo Geral da Área de Pacientes
+
+1. O usuário acessa a seção de pacientes.
+2. O sistema carrega os registros vinculados à conta.
+3. Filtros podem ser aplicados para refinar a pesquisa.
+4. Novos pacientes podem ser cadastrados.
+5. Consultas podem ser registradas.
+6. Fotos podem ser atualizadas.
+7. Relatórios individuais podem ser gerados.
+8. Todas as alterações são sincronizadas com o backend e persistidas no Banco de Dados.
+
+---
+
+### Seção de Estatísticas
+
+A seção **Estatísticas** permite a visualização de informações consolidadas dos pacientes cadastrados através de gráficos dinâmicos e relatórios em PDF.
+
+Essa tela é exibida quando:
+
+```text
+pagina === 'estatisticas'
+```
+
+O objetivo dessa área é fornecer uma visão analítica dos dados armazenados no sistema, permitindo a aplicação de filtros e diferentes formas de agrupamento.
+
+---
+
+#### Filtros Estatísticos
+
+O sistema disponibiliza diversos filtros para refinar os dados utilizados na geração dos gráficos.
+
+Filtros disponíveis:
+
+| Filtro            | Finalidade                                                |
+| ----------------- | --------------------------------------------------------- |
+| Agrupar por       | Define a categoria utilizada para consolidação dos dados. |
+| Sexo Biológico    | Filtra pacientes por sexo.                                |
+| Nascimento mínimo | Define a menor data de nascimento considerada.            |
+| Nascimento máximo | Define a maior data de nascimento considerada.            |
+| Sintoma           | Filtra pacientes associados a um sintoma específico.      |
+| Pontuação mínima  | Define o valor mínimo de pontuação.                       |
+| Pontuação máxima  | Define o valor máximo de pontuação.                       |
+
+Sempre que algum filtro é alterado, o sistema redefine o estado `filtrosAplicados`, indicando que os resultados exibidos já não correspondem aos filtros atualmente selecionados.
+
+---
+
+#### Tipos de Agrupamento
+
+O campo **Agrupar por** define como os dados serão organizados antes da geração do gráfico.
+
+Opções disponíveis:
+
+| Opção      | Finalidade                                                                           |
+| ---------- | ------------------------------------------------------------------------------------ |
+| Sexo Biológico| Agrupa os dados por sexo biológico dos pacientes.                                 |
+| Sintoma    | Agrupa os dados pelos sintomas registrados nas consultas.                            |
+| Peso médio | Agrupa os dados utilizando informações relacionadas à pontuação média dos pacientes. |
+
+A escolha dessa opção influencia diretamente a consulta realizada pela API e a estrutura dos dados retornados.
+
+---
+
+#### Seleção do Tipo de Gráfico
+
+Após definir os filtros, o usuário pode escolher o formato de visualização dos dados.
+
+Tipos disponíveis:
+
+| Tipo    | Descrição                                      |
+| ------- | ---------------------------------------------- |
+| Colunas | Representação através de barras verticais.     |
+| Linhas  | Representação por linhas conectando os pontos. |
+| Setores | Representação em gráfico de pizza.             |
+| Barras  | Representação através de barras horizontais.   |
+
+O tipo selecionado é armazenado no estado `tipoGrafico` e utilizado posteriormente pela função `obterGrafico()`.
+
+---
+
+### Aplicação dos Filtros
+
+O botão **Aplicar Filtros** executa a função `aplicarFiltros()`.
+
+Fluxo de execução:
+
+1. O sistema marca que filtros foram aplicados.
+2. Remove resultados anteriores.
+3. Executa `carregarEstatisticas()`.
+4. A API recebe os filtros selecionados.
+5. Os dados estatísticos são retornados.
+6. O gráfico é renderizado utilizando os novos resultados.
+
+Esse comportamento evita consultas automáticas excessivas ao backend, permitindo que o usuário configure todos os filtros antes de gerar o relatório visual.
+
+---
+
+### Geração de Relatório Estatístico
+
+O botão **Gerar PDF Estatístico** executa a função `gerarRelatorioEstatistico()`.
+
+Fluxo:
+
+1. O gráfico atualmente exibido é convertido para imagem.
+2. Os filtros ativos são coletados.
+3. As informações são enviadas ao backend.
+4. O servidor gera um relatório em PDF.
+5. O documento é disponibilizado para download.
+
+O relatório contém:
+
+* Filtros aplicados.
+* Dados estatísticos utilizados.
+* Gráfico gerado na interface.
+* Informações consolidadas retornadas pela API.
+
+---
+
+### Exibição dos Resultados
+
+A área de resultados apresenta diferentes comportamentos de acordo com o estado atual da consulta.
+
+---
+
+#### Carregamento
+
+Enquanto a consulta estatística está sendo processada, a seguinte mensagem é exibida:
+
+```text
+Carregando estatísticas...
+```
+
+Essa condição ocorre quando:
+
+```text
+carregandoEstatisticas === true
+```
+
+---
+
+#### Exibição do Gráfico
+
+Quando existem filtros aplicados e dados válidos retornados pela API, o gráfico é renderizado através da função:
+
+```text
+obterGrafico()
+```
+
+O componente é exibido dentro do contêiner:
+
+```text
+chartContainer
+```
+
+---
+
+#### Ausência de Dados
+
+Caso a consulta seja concluída, mas não existam registros compatíveis com os filtros selecionados, o sistema exibe:
+
+```text
+Nenhum dado disponível para exibir.
+```
+
+Essa situação ocorre quando a API retorna uma coleção vazia de resultados.
+
+---
+
+#### Estado Inicial
+
+Antes da aplicação dos filtros, nenhuma consulta estatística é realizada.
+
+Nesse cenário, a interface exibe a mensagem:
+
+```text
+Defina os filtros e clique em "Aplicar Filtros" para gerar o gráfico.
+```
+
+Esse comportamento evita processamento desnecessário e orienta o usuário sobre o fluxo correto de utilização da ferramenta.
+
+---
+
+### Fluxo Geral da Área de Estatísticas
+
+1. O usuário acessa a seção de estatísticas.
+2. Define os filtros desejados.
+3. Seleciona o tipo de agrupamento.
+4. Escolhe o formato do gráfico.
+5. Pressiona **Aplicar Filtros**.
+6. O sistema consulta a API.
+7. Os dados retornados são processados.
+8. O gráfico é renderizado.
+9. Opcionalmente, o usuário pode gerar um relatório em PDF contendo os resultados obtidos.
+
+A seção de estatísticas constitui o principal módulo analítico do sistema, permitindo transformar os dados cadastrados em informações visuais e relatórios consolidados.
+
+---
+
+### Encerramento do Componente
+
+Após a renderização condicional das seções Home, Pacientes e Estatísticas, o componente é finalizado e exportado para utilização pelo sistema.
+
+```typescript
+export default Menu
+```
+
+A instrução acima define o componente Menu como exportação padrão do arquivo, permitindo que ele seja importado e utilizado em outras partes da aplicação.
+
+---
+
 
 ### Administrador (admin.tsx - admin.css)
 
@@ -1374,7 +2650,7 @@ O arquivo é disponibilizado com:
 
 O relatório final pode conter:
 
-* Distribuição de pacientes por gênero;
+* Distribuição de pacientes por sexo biológico;
 * Frequência dos sintomas registrados;
 * Evolução temporal das consultas;
 * Média dos pesos dos sintomas;
