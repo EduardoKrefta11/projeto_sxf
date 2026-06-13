@@ -4,6 +4,7 @@
 - [Instruções para manutenção ou alteração de código](#instruções-para-manutenção-ou-alteração-do-código)
 - [Menu (Usuário Comum)](#menu_(usuário_comum))
 - [Administrador (Usuário Administrador)](#administrador-usuário-administrador)
+- [Banco de Dados](#banco-de-dados)
 
 ## Instruções para uso comum
 
@@ -3989,7 +3990,7 @@ Relatorio_Joao_Silva.pdf
 
 ---
 
-## Banco de Dados do Sistema de Triagem e Acompanhamento de Pacientes
+## Banco de Dados
 
 O banco de dados foi projetado para um sistema de gerenciamento de pacientes, pesquisadores e consultas médicas, permitindo o cadastro de usuários, pacientes, sintomas e o registro de consultas realizadas. A estrutura utiliza o modelo relacional, com integridade referencial garantida por chaves estrangeiras.
 
