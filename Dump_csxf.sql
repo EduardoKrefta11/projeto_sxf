@@ -1,5 +1,3 @@
-CREATE DATABASE  IF NOT EXISTS `db_sxf` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
-USE `db_sxf`;
 -- MySQL dump 10.13  Distrib 8.0.46, for Win64 (x86_64)
 --
 -- Host: localhost    Database: db_sxf
@@ -39,7 +37,7 @@ CREATE TABLE `consulta` (
   KEY `idPesquisador` (`idPesquisador`),
   CONSTRAINT `consulta_ibfk_1` FOREIGN KEY (`idPaciente`) REFERENCES `paciente` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `consulta_ibfk_2` FOREIGN KEY (`idPesquisador`) REFERENCES `usuario` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=41 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=44 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -102,7 +100,7 @@ CREATE TABLE `paciente` (
   KEY `idPesquisador` (`idPesquisador`),
   CONSTRAINT `paciente_ibfk_1` FOREIGN KEY (`idCriador`) REFERENCES `usuario` (`id`) ON UPDATE CASCADE,
   CONSTRAINT `paciente_ibfk_2` FOREIGN KEY (`idPesquisador`) REFERENCES `usuario` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -158,9 +156,10 @@ CREATE TABLE `usuario` (
   `dataCriacao` datetime NOT NULL DEFAULT current_timestamp(),
   `permissao` enum('ADM','COM') NOT NULL,
   `fotoPerfil` varchar(255) DEFAULT NULL,
+  `status` enum('Ativo','Inativo') DEFAULT 'Ativo',
   PRIMARY KEY (`id`),
   UNIQUE KEY `user` (`user`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -169,7 +168,7 @@ CREATE TABLE `usuario` (
 
 LOCK TABLES `usuario` WRITE;
 /*!40000 ALTER TABLE `usuario` DISABLE KEYS */;
-INSERT INTO `usuario` VALUES (1,'admin','Alice','$2b$12$Pq3/Qu7ScipMZ6X3QMHMqOQpxS6BT4mWpne3nGNDh2.LIc8XxBv7a','1970-12-31','2026-05-27 00:00:00','ADM',NULL),(2,'comum','Bob','$2b$12$Pq3/Qu7ScipMZ6X3QMHMqOQpxS6BT4mWpne3nGNDh2.LIc8XxBv7a','1992-06-12','2026-05-27 00:00:00','COM',NULL);
+INSERT INTO `usuario` VALUES (1,'admin','Alice','$2b$12$Pq3/Qu7ScipMZ6X3QMHMqOQpxS6BT4mWpne3nGNDh2.LIc8XxBv7a','1970-12-31','2026-05-27 00:00:00','ADM',NULL,'Ativo'),(2,'comum','Bob','$2b$12$Pq3/Qu7ScipMZ6X3QMHMqOQpxS6BT4mWpne3nGNDh2.LIc8XxBv7a','2002-02-02','2026-05-27 00:00:00','COM',NULL,'Ativo'),(3,'Rogerio','Rogerinho Gameplays','$2b$12$PPd4gQNGRh/hfhIdOZ8dWuWGAjI3ZIfYvkQhrIU3j9YvIx5P8M6qC','1111-11-11','2026-06-13 08:42:24','COM',NULL,'Ativo');
 /*!40000 ALTER TABLE `usuario` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -182,4 +181,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-06-12 11:01:09
+-- Dump completed on 2026-06-13  9:45:11
